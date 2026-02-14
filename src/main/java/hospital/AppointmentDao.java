@@ -1,16 +1,21 @@
 package hospital;
+
 import hospital.daomodel.Appointment;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AppointmentDao {
+
+    // Получение списка приёмов по роли пользователя
     public List<Appointment> getAppointmentsByRole(String role, int roleId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql;
         if ("PATIENT".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -25,6 +30,7 @@ public class AppointmentDao {
         } else if ("DOCTOR".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -39,6 +45,7 @@ public class AppointmentDao {
         } else if ("ADMIN".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -63,12 +70,13 @@ public class AppointmentDao {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Appointment appointment = new Appointment();
+                    appointment.setAppointmentId(rs.getInt("AppointmentID"));
                     appointment.setDateTime(rs.getTimestamp("AppointmentDateTime").toLocalDateTime());
                     appointment.setDoctorName(rs.getString("DoctorName"));
                     appointment.setPatientName(rs.getString("PatientName"));
                     appointment.setStatus(rs.getString("Status"));
                     appointment.setNote(rs.getString("MedicalRecordNote"));
-                    appointment.setRoomNumber(rs.getString("RoomNumber")); // Устанавливаем номер кабинета
+                    appointment.setRoomNumber(rs.getString("RoomNumber"));
                     appointments.add(appointment);
                 }
             }
@@ -76,6 +84,7 @@ public class AppointmentDao {
         return appointments;
     }
 
+    // Обновление приёма (по старым данным – дата, врач, пациент)
     public void updateAppointment(Appointment appointment) throws SQLException {
         String sql = """
             UPDATE Appointments
@@ -97,36 +106,7 @@ public class AppointmentDao {
         }
     }
 
-    public List<String> getAllDoctors() throws SQLException {
-        List<String> doctors = new ArrayList<>();
-        String sql = "SELECT FirstName || ' ' || LastName AS FullName FROM Doctors";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                doctors.add(rs.getString("FullName"));
-            }
-        }
-        return doctors;
-    }
-
-    public List<String> getAllPatients() throws SQLException {
-        List<String> patients = new ArrayList<>();
-        String sql = "SELECT FirstName || ' ' || LastName AS FullName FROM Patients";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                patients.add(rs.getString("FullName"));
-            }
-        }
-        return patients;
-    }
-
+    // Добавление нового приёма
     public void addAppointment(String doctorName, String patientName, String dateTime, String status, String note) throws SQLException {
         String sql = """
             INSERT INTO Appointments (DoctorID, PatientID, AppointmentDateTime, Status, MedicalRecordNote)
@@ -149,6 +129,7 @@ public class AppointmentDao {
         }
     }
 
+    // Удаление приёма (по старым данным)
     public void deleteAppointment(Appointment appointment) throws SQLException {
         String sql = """
             DELETE FROM Appointments
@@ -167,6 +148,7 @@ public class AppointmentDao {
         }
     }
 
+    // Поиск приёмов по поисковому запросу (с учётом роли)
     public List<Appointment> searchAppointments(String searchTerm, String role, int roleId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql;
@@ -174,6 +156,7 @@ public class AppointmentDao {
         if ("PATIENT".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -192,6 +175,7 @@ public class AppointmentDao {
         } else if ("DOCTOR".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -210,6 +194,7 @@ public class AppointmentDao {
         } else if ("ADMIN".equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
+                    a.AppointmentID,
                     a.AppointmentDateTime,
                     d.FirstName || ' ' || d.LastName AS DoctorName,
                     p.FirstName || ' ' || p.LastName AS PatientName,
@@ -255,6 +240,7 @@ public class AppointmentDao {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Appointment appointment = new Appointment();
+                    appointment.setAppointmentId(rs.getInt("AppointmentID"));
                     appointment.setDateTime(rs.getTimestamp("AppointmentDateTime").toLocalDateTime());
                     appointment.setDoctorName(rs.getString("DoctorName"));
                     appointment.setPatientName(rs.getString("PatientName"));
@@ -266,5 +252,82 @@ public class AppointmentDao {
             }
         }
         return appointments;
+    }
+
+    // Получение списка всех врачей (ФИО)
+    public List<String> getAllDoctors() throws SQLException {
+        List<String> doctors = new ArrayList<>();
+        String sql = "SELECT FirstName || ' ' || LastName AS FullName FROM Doctors";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                doctors.add(rs.getString("FullName"));
+            }
+        }
+        return doctors;
+    }
+
+    // Получение списка всех пациентов (ФИО)
+    public List<String> getAllPatients() throws SQLException {
+        List<String> patients = new ArrayList<>();
+        String sql = "SELECT FirstName || ' ' || LastName AS FullName FROM Patients";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                patients.add(rs.getString("FullName"));
+            }
+        }
+        return patients;
+    }
+
+    public boolean hasAppointmentWithinDays(String doctorName, String patientName, LocalDate date, int days, Integer excludeAppointmentId) throws SQLException {
+        LocalDate startDate = date.minusDays(days);
+        LocalDate endDate = date.plusDays(days);
+        String sql;
+        if (excludeAppointmentId != null) {
+            sql = """
+                SELECT COUNT(*) FROM Appointments a
+                JOIN Doctors d ON a.DoctorID = d.DoctorID
+                JOIN Patients p ON a.PatientID = p.PatientID
+                WHERE d.FirstName || ' ' || d.LastName = ?
+                  AND p.FirstName || ' ' || p.LastName = ?
+                  AND DATE(a.AppointmentDateTime) BETWEEN ? AND ?
+                  AND a.AppointmentID != ?
+            """;
+        } else {
+            sql = """
+                SELECT COUNT(*) FROM Appointments a
+                JOIN Doctors d ON a.DoctorID = d.DoctorID
+                JOIN Patients p ON a.PatientID = p.PatientID
+                WHERE d.FirstName || ' ' || d.LastName = ?
+                  AND p.FirstName || ' ' || p.LastName = ?
+                  AND DATE(a.AppointmentDateTime) BETWEEN ? AND ?
+            """;
+        }
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, doctorName);
+            stmt.setString(2, patientName);
+            stmt.setDate(3, Date.valueOf(startDate));
+            stmt.setDate(4, Date.valueOf(endDate));
+            if (excludeAppointmentId != null) {
+                stmt.setInt(5, excludeAppointmentId);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }
