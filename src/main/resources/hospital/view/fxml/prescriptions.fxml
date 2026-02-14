@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="hospital.view.controller.PrescriptionController"
+      spacing="10">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label text="Мои рецепты" style="-fx-font-size: 16px;"/>
+
+    <!-- Добавлено поле поиска -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Поиск рецептов:"/>
+        <TextField fx:id="searchPrescriptionsField" promptText="Поиск по ФИО..." prefWidth="250"/>
+    </HBox>
+
+    <TableView fx:id="prescriptionTable" prefHeight="300">
+        <columns>
+            <TableColumn fx:id="personColumn" text="Врач" prefWidth="150"/>
+            <TableColumn fx:id="medicineColumn" text="Лекарство" prefWidth="150"/>
+            <TableColumn fx:id="dosageColumn" text="Дозировка" prefWidth="150"/>
+        </columns>
+    </TableView>
+    <!-- Кнопки редактирования и удаления -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button fx:id="editButton" text="Изменить" onAction="#handleEditPrescription"/>
+        <Button fx:id="deleteButton" text="Удалить" onAction="#handleDeletePrescription"/>
+    </HBox>
+    <!-- Форма добавления рецепта, видна только врачу -->
+    <VBox fx:id="doctorForm" spacing="8" visible="false" managed="false" style="-fx-border-color: gray; -fx-padding: 10;">
+        <Label text="Добавить рецепт" style="-fx-font-weight: bold;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Пациент:" prefWidth="70"/>
+            <ComboBox fx:id="patientComboBox" prefWidth="200"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Лекарство:" prefWidth="70"/>
+            <TextField fx:id="medicineField" promptText="Введите лекарство" prefWidth="200"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Дозировка:" prefWidth="70"/>
+            <TextField fx:id="dosageField" promptText="Введите дозировку" prefWidth="200"/>
+        </HBox>
+        <Button fx:id="addPrescriptionButton" text="Добавить рецепт" onAction="#handleAddPrescription" prefWidth="150"/>
+    </VBox>
+</VBox>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="hospital.view.controller.AdminController"
+      spacing="5" prefWidth="1000" prefHeight="600">
+
+    <MenuBar>
+        <Menu text="Действия">
+            <MenuItem text="Приёмы" onAction="#handleAllAppointments"/>
+            <MenuItem text="Управление врачами" onAction="#handleManageDoctors"/>
+            <MenuItem text="Управление пациентами" onAction="#handleManagePatients"/>
+        </Menu>
+    </MenuBar>
+
+    <TabPane fx:id="adminTabPane" VBox.vgrow="ALWAYS">
+        <tabs>
+            <Tab text="Врачи" closable="false">
+                <VBox spacing="5">
+                    <!-- Добавлено поле поиска -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Поиск врачей:"/>
+                        <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача..." prefWidth="250"/>
+                    </HBox>
+                    <TableView fx:id="doctorsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="doctorIdColumn" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="doctorFirstNameColumn" text="Имя" prefWidth="100"/>
+                            <TableColumn fx:id="doctorLastNameColumn" text="Фамилия" prefWidth="100"/>
+                            <TableColumn fx:id="specializationColumn" text="Специализация" prefWidth="120"/>
+                            <TableColumn fx:id="roomColumn" text="Кабинет" prefWidth="80"/>
+                            <TableColumn fx:id="scheduleColumn" text="Расписание" prefWidth="120"/>
+                            <TableColumn fx:id="doctorEmailColumn" text="Email" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            <Tab text="Пациенты" closable="false">
+                <VBox spacing="5">
+                    <!-- Добавлено поле поиска -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Поиск пациентов:"/>
+                        <TextField fx:id="searchPatientsField" promptText="Поиск по ФИО пациента..." prefWidth="250"/>
+                    </HBox>
+                    <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="patientIdColumn" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="patientFirstNameColumn" text="Имя" prefWidth="100"/>
+                            <TableColumn fx:id="patientLastNameColumn" text="Фамилия" prefWidth="100"/>
+                            <TableColumn fx:id="birthDateColumn" text="Дата рождения" prefWidth="100"/>
+                            <TableColumn fx:id="phoneColumn" text="Телефон" prefWidth="120"/>
+                            <TableColumn fx:id="patientEmailColumn" text="Email" prefWidth="150"/>
+                            <TableColumn fx:id="snilsColumn" text="СНИЛС" prefWidth="120"/>
+                            <TableColumn fx:id="policyColumn" text="Полис ОМС" prefWidth="120"/>
+                            <TableColumn fx:id="districtColumn" text="Участок" prefWidth="80"/>
+                            <TableColumn fx:id="addressColumn" text="Адрес" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

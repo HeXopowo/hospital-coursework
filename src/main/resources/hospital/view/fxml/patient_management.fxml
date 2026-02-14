@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="hospital.view.controller.PatManController"
+      spacing="10">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label text="Управление пациентами"
+           style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <!-- Добавлено поле поиска -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Поиск пациентов:"/>
+        <TextField fx:id="searchPatientsField" promptText="Введите ФИО пациента..." prefWidth="250"/>
+    </HBox>
+
+    <TableView fx:id="patientTable" prefHeight="400" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="idColumn" text="ID" prefWidth="50" />
+            <TableColumn fx:id="firstNameColumn" text="Имя" prefWidth="100" />
+            <TableColumn fx:id="lastNameColumn" text="Фамилия" prefWidth="100" />
+            <TableColumn fx:id="birthDateColumn" text="Дата рождения" prefWidth="100" />
+            <TableColumn fx:id="phoneColumn" text="Телефон" prefWidth="120" />
+            <TableColumn fx:id="emailColumn" text="Email" prefWidth="150" />
+            <TableColumn fx:id="snilsColumn" text="СНИЛС" prefWidth="120" />
+            <TableColumn fx:id="policyColumn" text="Полис ОМС" prefWidth="120" />
+            <TableColumn fx:id="districtColumn" text="Участок" prefWidth="80" />
+            <TableColumn fx:id="addressColumn" text="Адрес" prefWidth="150" />
+        </columns>
+    </TableView>
+    <HBox fx:id="adminButtonPanel1" spacing="10">
+        <Button text="Добавить пациента" onAction="#handleAddPatient" />
+        <Button text="Изменить" onAction="#handleEditPatient" />
+        <Button text="Удалить" onAction="#handleDeletePatient" />
+    </HBox>
+</VBox>

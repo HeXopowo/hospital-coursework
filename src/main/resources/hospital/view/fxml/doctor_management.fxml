@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="hospital.view.controller.DocManController"
+      spacing="10"
+      prefWidth="700"
+      prefHeight="600">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label text="Управление врачами" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <!-- Добавлено поле поиска -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Поиск врачей:"/>
+        <TextField fx:id="searchDoctorsField" promptText="Введите ФИО врача..." prefWidth="250"/>
+    </HBox>
+
+    <TableView fx:id="doctorTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="idColumn" text="ID" prefWidth="50" />
+            <TableColumn fx:id="firstNameColumn" text="Имя" prefWidth="150" />
+            <TableColumn fx:id="lastNameColumn" text="Фамилия" prefWidth="150" />
+            <TableColumn fx:id="specializationColumn" text="Специализация" prefWidth="200" />
+            <TableColumn fx:id="roomNumberColumn" text="Кабинет" prefWidth="100" />
+            <TableColumn fx:id="scheduleColumn" text="График" prefWidth="250" />
+            <TableColumn fx:id="emailColumn" text="Email" prefWidth="250" />
+        </columns>
+    </TableView>
+    <HBox fx:id="adminButtonPanel2" spacing="10">
+        <Button text="Добавить врача" onAction="#handleAddDoctor" />
+        <Button text="Изменить" onAction="#handleEditDoctor" />
+        <Button text="Удалить" onAction="#handleDeleteDoctor" />
+    </HBox>
+</VBox>

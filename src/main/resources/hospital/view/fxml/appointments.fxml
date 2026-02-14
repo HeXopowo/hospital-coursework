@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="hospital.view.controller.AppointmentsController"
+      spacing="10"
+      prefWidth="900"
+      prefHeight="700">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <Label fx:id="titleLabel" text="Приёмы" style="-fx-font-size: 16px;"/>
+
+    <!-- Добавлено поле поиска -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Поиск приёмов:"/>
+        <TextField fx:id="searchAppointmentsField" promptText="Поиск по ФИО врача или пациента..." prefWidth="300"/>
+    </HBox>
+
+    <TableView fx:id="appointmentTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="dateColumn" text="Дата и время" prefWidth="180"/>
+            <TableColumn fx:id="personColumn" text="Врач" prefWidth="200"/>
+            <TableColumn fx:id="roomColumn" text="Кабинет" prefWidth="80"/>
+            <TableColumn fx:id="statusColumn" text="Статус" prefWidth="120"/>
+            <TableColumn fx:id="noteColumn" text="Примечание" prefWidth="300"/>
+        </columns>
+    </TableView>
+    <!-- Блок добавления приёма только для администратора -->
+    <VBox fx:id="adminForm" spacing="10" visible="false" managed="false">
+        <Label text="Назначить приём" style="-fx-font-weight: bold;"/>
+        <HBox spacing="10">
+            <Label text="Врач:"/>
+            <ComboBox fx:id="doctorComboBox" prefWidth="200"/>
+            <Label text="Пациент:"/>
+            <ComboBox fx:id="patientComboBox" prefWidth="200"/>
+        </HBox>
+        <HBox spacing="10">
+            <Label text="Дата:"/>
+            <DatePicker fx:id="datePicker" prefWidth="150"/>
+            <Label text="Время:"/>
+            <TextField fx:id="timeField" promptText="HH:mm" prefWidth="80"/>
+        </HBox>
+        <HBox spacing="10">
+            <Label text="Статус:"/>
+            <ComboBox fx:id="statusComboBox" promptText="Выберите статус" prefWidth="150"/>
+            <Label text="Примечание:"/>
+            <TextField fx:id="noteField" promptText="Примечание" prefWidth="300"/>
+            <Button text="Назначить приём" onAction="#handleAddAppointment"/>
+        </HBox>
+        <HBox spacing="10">
+            <Button fx:id="deleteButton"
+                    text="Удалить приём"
+                    onAction="#handleDeleteAppointment"
+                    visible="false"
+                    managed="false"/>
+            <Button fx:id="editButton"
+                    text="Сохранить изменения"
+                    onAction="#handleEditAppointment"
+                    visible="false"
+                    managed="false"/>
+        </HBox>
+    </VBox>
+</VBox>
