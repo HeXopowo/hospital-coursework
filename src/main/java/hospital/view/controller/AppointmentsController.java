@@ -177,23 +177,43 @@ public class AppointmentsController {
         try {
             LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
 
+            // Проверка даты и статуса (нельзя назначать приём в прошлом со статусами "Запланирован" или "Подтверждён")
             if (isPastDateForbidden(appointmentDateTime, status)) {
                 showError("Нельзя назначить приём со статусом \"" + status + "\" на прошедшую дату.");
                 return;
             }
 
-            // Проверка интервала 14 дней (используем days = 13 для диапазона ±13 дней)
+            // Получаем ID врача и пациента
+            int doctorId = appointmentDao.getDoctorIdByName(doctorName);
+            int patientId = appointmentDao.getPatientIdByName(patientName);
+
+            // Проверка занятости врача
+            if (appointmentDao.hasDoctorAppointmentAtTime(doctorId, appointmentDateTime, null)) {
+                showError("Врач уже занят в это время.");
+                return;
+            }
+
+            // Проверка занятости пациента
+            if (appointmentDao.hasPatientAppointmentAtTime(patientId, appointmentDateTime, null)) {
+                showError("У пациента уже есть приём в это время (у другого врача).");
+                return;
+            }
+
+            // Проверка интервала 14 дней (с учётом возможного учёта)
             if (appointmentDao.hasAppointmentWithinDays(doctorName, patientName, date, 13, null)) {
-                showError("Нельзя назначить приём чаще чем раз в 14 дней для одного пациента и врача.");
+                showError("Нельзя назначить приём чаще чем раз в 14 дней для одного пациента и врача (если пациент не состоит на учёте).");
                 return;
             }
 
             appointmentDao.addAppointment(doctorName, patientName, dateTime, status, note);
             loadAppointmentsData();
             clearForm();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             showError("Ошибка при добавлении приёма: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Ошибка при обработке данных: " + e.getMessage());
         }
     }
 
@@ -228,14 +248,31 @@ public class AppointmentsController {
         try {
             LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
 
+            // Проверка даты и статуса
             if (isPastDateForbidden(appointmentDateTime, status)) {
                 showError("Нельзя установить статус \"" + status + "\" для приёма на прошедшую дату.");
                 return;
             }
 
-            // Проверка интервала 14 дней с исключением текущего приёма
+            // Получаем ID врача и пациента
+            int doctorId = appointmentDao.getDoctorIdByName(doctorName);
+            int patientId = appointmentDao.getPatientIdByName(patientName);
+
+            // Проверка занятости врача (исключая текущий приём)
+            if (appointmentDao.hasDoctorAppointmentAtTime(doctorId, appointmentDateTime, selected.getAppointmentId())) {
+                showError("Врач уже занят в это время.");
+                return;
+            }
+
+            // Проверка занятости пациента (исключая текущий приём)
+            if (appointmentDao.hasPatientAppointmentAtTime(patientId, appointmentDateTime, selected.getAppointmentId())) {
+                showError("У пациента уже есть приём в это время (у другого врача).");
+                return;
+            }
+
+            // Проверка интервала 14 дней (с учётом учёта и исключением текущего приёма)
             if (appointmentDao.hasAppointmentWithinDays(doctorName, patientName, date, 13, selected.getAppointmentId())) {
-                showError("Нельзя изменить приём так, чтобы интервал с другими приёмами стал меньше 14 дней.");
+                showError("Нельзя изменить приём так, чтобы интервал с другими приёмами стал меньше 14 дней (если пациент не состоит на учёте).");
                 return;
             }
 
@@ -244,12 +281,15 @@ public class AppointmentsController {
             selected.setDateTime(appointmentDateTime);
             selected.setStatus(status);
             selected.setNote(note);
-            saveAppointment(selected);
+            appointmentDao.updateAppointment(selected);
             loadAppointmentsData();
             clearForm();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showError("Ошибка при обновлении приёма: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Ошибка при обработке данных.");
+            showError("Ошибка при обработке данных: " + e.getMessage());
         }
     }
 

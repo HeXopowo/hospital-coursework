@@ -3,6 +3,7 @@ package hospital;
 import hospital.daomodel.Appointment;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -349,7 +350,7 @@ public class AppointmentDao {
     }
 
     // Вспомогательный метод для получения ID врача по полному имени
-    private int getDoctorIdByName(String fullName) throws SQLException {
+    public int getDoctorIdByName(String fullName) throws SQLException {
         String sql = "SELECT DoctorID FROM Doctors WHERE FirstName || ' ' || LastName = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -365,7 +366,7 @@ public class AppointmentDao {
     }
 
     // Вспомогательный метод для получения ID пациента по полному имени
-    private int getPatientIdByName(String fullName) throws SQLException {
+    public int getPatientIdByName(String fullName) throws SQLException {
         String sql = "SELECT PatientID FROM Patients WHERE FirstName || ' ' || LastName = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -378,5 +379,53 @@ public class AppointmentDao {
                 }
             }
         }
+    }
+
+    // Проверяет, есть ли у пациента приём в указанное время (с возможностью исключить приём по ID)
+    public boolean hasPatientAppointmentAtTime(int patientId, LocalDateTime dateTime, Integer excludeAppointmentId) throws SQLException {
+        String sql;
+        if (excludeAppointmentId != null) {
+            sql = "SELECT COUNT(*) FROM Appointments WHERE PatientID = ? AND AppointmentDateTime = ? AND AppointmentID != ?";
+        } else {
+            sql = "SELECT COUNT(*) FROM Appointments WHERE PatientID = ? AND AppointmentDateTime = ?";
+        }
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, patientId);
+            stmt.setTimestamp(2, Timestamp.valueOf(dateTime));
+            if (excludeAppointmentId != null) {
+                stmt.setInt(3, excludeAppointmentId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Проверяет, есть ли у врача приём в указанное время (с возможностью исключить приём по ID)
+    public boolean hasDoctorAppointmentAtTime(int doctorId, LocalDateTime dateTime, Integer excludeAppointmentId) throws SQLException {
+        String sql;
+        if (excludeAppointmentId != null) {
+            sql = "SELECT COUNT(*) FROM Appointments WHERE DoctorID = ? AND AppointmentDateTime = ? AND AppointmentID != ?";
+        } else {
+            sql = "SELECT COUNT(*) FROM Appointments WHERE DoctorID = ? AND AppointmentDateTime = ?";
+        }
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, doctorId);
+            stmt.setTimestamp(2, Timestamp.valueOf(dateTime));
+            if (excludeAppointmentId != null) {
+                stmt.setInt(3, excludeAppointmentId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -66,7 +66,6 @@
                             <TableColumn fx:id="regPatientColumn" text="Пациент" prefWidth="200"/>
                             <TableColumn fx:id="regDoctorColumn" text="Врач" prefWidth="200"/>
                             <TableColumn fx:id="regDateColumn" text="Дата постановки" prefWidth="120"/>
-                            <TableColumn fx:id="regDiagnosisColumn" text="Диагноз" prefWidth="250"/>
                             <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="200"/>
                         </columns>
                     </TableView>

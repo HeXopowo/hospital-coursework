@@ -54,7 +54,6 @@ public class AdminController {
     @FXML private TableColumn<PatientRegistration, String> regPatientColumn;
     @FXML private TableColumn<PatientRegistration, String> regDoctorColumn;
     @FXML private TableColumn<PatientRegistration, LocalDate> regDateColumn;
-    @FXML private TableColumn<PatientRegistration, String> regDiagnosisColumn;
     @FXML private TableColumn<PatientRegistration, String> regNotesColumn;
 
     private ObservableList<PatientRegistration> registrationsData = FXCollections.observableArrayList();
@@ -112,7 +111,6 @@ public class AdminController {
         regPatientColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPatientName()));
         regDoctorColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDoctorName()));
         regDateColumn.setCellValueFactory(new PropertyValueFactory<>("registrationDate"));
-        regDiagnosisColumn.setCellValueFactory(new PropertyValueFactory<>("diagnosis"));
         regNotesColumn.setCellValueFactory(new PropertyValueFactory<>("notes"));
         registrationsTable.setItems(registrationsData);
     }
