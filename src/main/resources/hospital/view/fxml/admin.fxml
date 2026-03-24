@@ -17,11 +17,13 @@
 
     <TabPane fx:id="adminTabPane" VBox.vgrow="ALWAYS">
         <tabs>
+            <!-- Вкладка "Врачи" -->
             <Tab text="Врачи" closable="false">
                 <VBox spacing="5">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск врачей:"/>
                         <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача..." prefWidth="250"/>
+                        <Button text="Обновить" onAction="#handleRefreshDoctors"/>
                     </HBox>
                     <TableView fx:id="doctorsTable" VBox.vgrow="ALWAYS">
                         <columns>
@@ -36,11 +38,14 @@
                     </TableView>
                 </VBox>
             </Tab>
+
+            <!-- Вкладка "Пациенты" -->
             <Tab text="Пациенты" closable="false">
                 <VBox spacing="5">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск пациентов:"/>
                         <TextField fx:id="searchPatientsField" promptText="Поиск по ФИО пациента..." prefWidth="250"/>
+                        <Button text="Обновить" onAction="#handleRefreshPatients"/>
                     </HBox>
                     <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS">
                         <columns>
@@ -58,9 +63,14 @@
                     </TableView>
                 </VBox>
             </Tab>
+
+            <!-- Вкладка "Учёт пациентов" -->
             <Tab text="Учёт пациентов" closable="false">
                 <VBox spacing="5">
-                    <Label text="Активные учётные записи пациентов: "/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Активные учётные записи пациентов:"/>
+                        <Button text="Обновить" onAction="#handleRefreshRegistrations"/>
+                    </HBox>
                     <TableView fx:id="registrationsTable" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="regPatientColumn" text="Пациент" prefWidth="200"/>
@@ -69,6 +79,53 @@
                             <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="200"/>
                         </columns>
                     </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- Вкладка "Архив" -->
+            <Tab text="Архив" closable="false">
+                <VBox spacing="10">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Архивированные пациенты:"/>
+                        <Button text="Обновить" onAction="#handleRefreshArchive"/>
+                    </HBox>
+                    <TableView fx:id="archivedPatientsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="archPatIdColumn" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="archPatFirstNameColumn" text="Имя" prefWidth="100"/>
+                            <TableColumn fx:id="archPatLastNameColumn" text="Фамилия" prefWidth="100"/>
+                            <TableColumn fx:id="archPatBirthDateColumn" text="Дата рождения" prefWidth="100"/>
+                            <TableColumn fx:id="archPatPhoneColumn" text="Телефон" prefWidth="120"/>
+                            <TableColumn fx:id="archPatEmailColumn" text="Email" prefWidth="150"/>
+                            <TableColumn fx:id="archPatSnilsColumn" text="СНИЛС" prefWidth="120"/>
+                            <TableColumn fx:id="archPatPolicyColumn" text="Полис ОМС" prefWidth="120"/>
+                            <TableColumn fx:id="archPatDistrictColumn" text="Участок" prefWidth="80"/>
+                            <TableColumn fx:id="archPatAddressColumn" text="Адрес" prefWidth="150"/>
+                            <TableColumn fx:id="archPatDateColumn" text="Дата архивации" prefWidth="150"/>
+                            <TableColumn fx:id="archPatActionColumn" text="Действие" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                    <Separator/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Архивированные врачи:"/>
+                        <!-- Кнопка обновления уже есть выше, обновляет обе таблицы -->
+                    </HBox>
+                    <TableView fx:id="archivedDoctorsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="archDocIdColumn" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="archDocFirstNameColumn" text="Имя" prefWidth="100"/>
+                            <TableColumn fx:id="archDocLastNameColumn" text="Фамилия" prefWidth="100"/>
+                            <TableColumn fx:id="archDocSpecializationColumn" text="Специализация" prefWidth="120"/>
+                            <TableColumn fx:id="archDocRoomColumn" text="Кабинет" prefWidth="80"/>
+                            <TableColumn fx:id="archDocScheduleColumn" text="Расписание" prefWidth="120"/>
+                            <TableColumn fx:id="archDocEmailColumn" text="Email" prefWidth="150"/>
+                            <TableColumn fx:id="archDocDateColumn" text="Дата архивации" prefWidth="150"/>
+                            <TableColumn fx:id="archDocActionColumn" text="Действие" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Очистить архив (удалить записи старше 50 лет)" onAction="#handleCleanupArchive"/>
+                    </HBox>
                 </VBox>
             </Tab>
         </tabs>

@@ -193,4 +193,151 @@ public class PatientDao {
         stmt.setInt(8, patient.getDistrict());
         stmt.setString(9, patient.getAddress());
     }
+
+    // Архивирует пациента (перемещает в таблицу ArchivedPatients и удаляет из основной)
+    public void archivePatient(int patientId, String archivedBy) throws SQLException {
+        // Получаем данные пациента
+        Patient patient = getPatientById(patientId);
+        if (patient == null) return;
+
+        // 1. Архивируем пациента (копируем в ArchivedPatients)
+        String insertArchivedSql = """
+        INSERT INTO ArchivedPatients (PatientID, FirstName, LastName, BirthDate, PhoneNumber, 
+                                      Email, SNILS, PolicyOMS, District, Address, ArchivedBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(insertArchivedSql)) {
+            stmt.setInt(1, patient.getPatientId());
+            stmt.setString(2, patient.getFirstName());
+            stmt.setString(3, patient.getLastName());
+            stmt.setDate(4, patient.getBirthDate() != null ? Date.valueOf(patient.getBirthDate()) : null);
+            stmt.setString(5, patient.getPhoneNumber());
+            stmt.setString(6, patient.getEmail());
+            stmt.setString(7, patient.getSnils());
+            stmt.setString(8, patient.getPolicyOMS());
+            stmt.setInt(9, patient.getDistrict());
+            stmt.setString(10, patient.getAddress());
+            stmt.setString(11, archivedBy);
+            stmt.executeUpdate();
+        }
+
+        // 2. Удаляем запись из Users (если есть)
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM Users WHERE PatientID = ?")) {
+            stmt.setInt(1, patientId);
+            stmt.executeUpdate();
+        }
+
+        // 3. Удаляем пациента из основной таблицы – каскадное удаление сработает автоматически,
+        //    триггеры заархивируют связанные данные
+        String deleteSql = "DELETE FROM Patients WHERE PatientID = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
+            stmt.setInt(1, patientId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Удаляет все данные, связанные с пациентом
+    private void deleteRelatedPatientData(int patientId) throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // Удаляем записи в Users
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Users WHERE PatientID = ?")) {
+                stmt.setInt(1, patientId);
+                stmt.executeUpdate();
+            }
+            // Удаляем приёмы
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Appointments WHERE PatientID = ?")) {
+                stmt.setInt(1, patientId);
+                stmt.executeUpdate();
+            }
+            // Удаляем рецепты
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM Prescriptions WHERE PatientID = ?")) {
+                stmt.setInt(1, patientId);
+                stmt.executeUpdate();
+            }
+            // Удаляем медицинские записи
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM MedicalRecords WHERE PatientID = ?")) {
+                stmt.setInt(1, patientId);
+                stmt.executeUpdate();
+            }
+            // Удаляем учётные записи
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM PatientRegistrations WHERE PatientID = ?")) {
+                stmt.setInt(1, patientId);
+                stmt.executeUpdate();
+            }
+        }
+    }
+
+    // Получает список архивированных пациентов (с их archivedId)
+    public List<Patient> getArchivedPatients() throws SQLException {
+        List<Patient> archived = new ArrayList<>();
+        String sql = """
+        SELECT ArchivedID, PatientID, FirstName, LastName, BirthDate, PhoneNumber, Email,\s
+        SNILS, PolicyOMS, District, Address, ArchivedDate
+        FROM ArchivedPatients
+        ORDER BY ArchivedDate DESC
+        """;
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Patient patient = new Patient();
+                patient.setArchivedId(rs.getInt("ArchivedID"));
+                patient.setPatientId(rs.getInt("PatientID"));
+                patient.setFirstName(rs.getString("FirstName"));
+                patient.setLastName(rs.getString("LastName"));
+                Date birthDate = rs.getDate("BirthDate");
+                patient.setBirthDate(birthDate != null ? birthDate.toLocalDate() : null);
+                patient.setPhoneNumber(rs.getString("PhoneNumber"));
+                patient.setEmail(rs.getString("Email"));
+                patient.setSnils(rs.getString("SNILS"));
+                patient.setPolicyOMS(rs.getString("PolicyOMS"));
+                patient.setDistrict(rs.getInt("District"));
+                patient.setAddress(rs.getString("Address"));
+                patient.setArchivedDate(rs.getDate("ArchivedDate") != null ? rs.getDate("ArchivedDate").toLocalDate() : null);
+                archived.add(patient);
+            }
+        }
+        return archived;
+    }
+
+    // Восстанавливает пациента из архива по его archivedId
+    public void restorePatient(int archivedId) throws SQLException {
+        String selectSql = "SELECT * FROM ArchivedPatients WHERE ArchivedID = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(selectSql)) {
+            stmt.setInt(1, archivedId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Восстанавливаем пациента (сохраняем оригинальный PatientID)
+                    String insertSql = """
+                    INSERT INTO Patients (PatientID, FirstName, LastName, BirthDate, PhoneNumber, 
+                                          Email, SNILS, PolicyOMS, District, Address)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """;
+                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                        insertStmt.setInt(1, rs.getInt("PatientID"));
+                        insertStmt.setString(2, rs.getString("FirstName"));
+                        insertStmt.setString(3, rs.getString("LastName"));
+                        insertStmt.setDate(4, rs.getDate("BirthDate"));
+                        insertStmt.setString(5, rs.getString("PhoneNumber"));
+                        insertStmt.setString(6, rs.getString("Email"));
+                        insertStmt.setString(7, rs.getString("SNILS"));
+                        insertStmt.setString(8, rs.getString("PolicyOMS"));
+                        insertStmt.setInt(9, rs.getInt("District"));
+                        insertStmt.setString(10, rs.getString("Address"));
+                        insertStmt.executeUpdate();
+                    }
+                    // Удаляем из архива
+                    String deleteSql = "DELETE FROM ArchivedPatients WHERE ArchivedID = ?";
+                    try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                        deleteStmt.setInt(1, archivedId);
+                        deleteStmt.executeUpdate();
+                    }
+                }
+            }
+        }
+    }
 }
