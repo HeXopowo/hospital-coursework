@@ -8,6 +8,8 @@ import java.util.List;
 
 public class AppointmentDao {
 
+    private final PatientRegistrationDao registrationDao = new PatientRegistrationDao();
+
     // Получение списка приёмов по роли пользователя
     public List<Appointment> getAppointmentsByRole(String role, int roleId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
@@ -84,24 +86,32 @@ public class AppointmentDao {
         return appointments;
     }
 
-    // Обновление приёма (по старым данным – дата, врач, пациент)
+    // Обновление приёма
     public void updateAppointment(Appointment appointment) throws SQLException {
+        // Получаем ID врача и пациента по их именам
+        int doctorId = getDoctorIdByName(appointment.getDoctorName());
+        int patientId = getPatientIdByName(appointment.getPatientName());
+
         String sql = """
-            UPDATE Appointments
-            SET Status = ?, MedicalRecordNote = ?
-            WHERE AppointmentDateTime = ? 
-              AND DoctorID = (SELECT DoctorID FROM Doctors WHERE FirstName || ' ' || LastName = ?) 
-              AND PatientID = (SELECT PatientID FROM Patients WHERE FirstName || ' ' || LastName = ?)
-        """;
+        UPDATE Appointments
+        SET DoctorID = ?, 
+            PatientID = ?, 
+            AppointmentDateTime = ?, 
+            Status = ?, 
+            MedicalRecordNote = ?
+        WHERE AppointmentID = ?
+    """;
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, appointment.getStatus());
-            stmt.setString(2, appointment.getNote());
+            stmt.setInt(1, doctorId);
+            stmt.setInt(2, patientId);
             stmt.setTimestamp(3, Timestamp.valueOf(appointment.getDateTime()));
-            stmt.setString(4, appointment.getDoctorName());
-            stmt.setString(5, appointment.getPatientName());
+            stmt.setString(4, appointment.getStatus());
+            stmt.setString(5, appointment.getNote());
+            stmt.setInt(6, appointment.getAppointmentId());
+
             stmt.executeUpdate();
         }
     }
@@ -129,7 +139,7 @@ public class AppointmentDao {
         }
     }
 
-    // Удаление приёма (по старым данным)
+    // Удаление приёма
     public void deleteAppointment(Appointment appointment) throws SQLException {
         String sql = """
             DELETE FROM Appointments
@@ -148,7 +158,7 @@ public class AppointmentDao {
         }
     }
 
-    // Поиск приёмов по поисковому запросу (с учётом роли)
+    // Поиск приёмов по поисковому запросу
     public List<Appointment> searchAppointments(String searchTerm, String role, int roleId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql;
@@ -286,36 +296,43 @@ public class AppointmentDao {
         return patients;
     }
 
+    // Проверяет, есть ли у данной пары врач-пациент другие приёмы в заданном диапазоне дней
+    // Если пациент состоит на учёте у врача, ограничение не применяется
     public boolean hasAppointmentWithinDays(String doctorName, String patientName, LocalDate date, int days, Integer excludeAppointmentId) throws SQLException {
+        // Получаем ID врача и пациента
+        int doctorId = getDoctorIdByName(doctorName);
+        int patientId = getPatientIdByName(patientName);
+
+        // Проверяем, состоит ли пациент на активном учёте у этого врача
+        if (registrationDao.isPatientRegistered(patientId, doctorId)) {
+            return false; // учёт есть — ограничение не применяется
+        }
+
+        // Иначе проверяем наличие записей в указанном диапазоне
         LocalDate startDate = date.minusDays(days);
         LocalDate endDate = date.plusDays(days);
+
         String sql;
         if (excludeAppointmentId != null) {
             sql = """
-                SELECT COUNT(*) FROM Appointments a
-                JOIN Doctors d ON a.DoctorID = d.DoctorID
-                JOIN Patients p ON a.PatientID = p.PatientID
-                WHERE d.FirstName || ' ' || d.LastName = ?
-                  AND p.FirstName || ' ' || p.LastName = ?
-                  AND DATE(a.AppointmentDateTime) BETWEEN ? AND ?
-                  AND a.AppointmentID != ?
+                SELECT COUNT(*) FROM Appointments
+                WHERE DoctorID = ? AND PatientID = ?
+                  AND DATE(AppointmentDateTime) BETWEEN ? AND ?
+                  AND AppointmentID != ?
             """;
         } else {
             sql = """
-                SELECT COUNT(*) FROM Appointments a
-                JOIN Doctors d ON a.DoctorID = d.DoctorID
-                JOIN Patients p ON a.PatientID = p.PatientID
-                WHERE d.FirstName || ' ' || d.LastName = ?
-                  AND p.FirstName || ' ' || p.LastName = ?
-                  AND DATE(a.AppointmentDateTime) BETWEEN ? AND ?
+                SELECT COUNT(*) FROM Appointments
+                WHERE DoctorID = ? AND PatientID = ?
+                  AND DATE(AppointmentDateTime) BETWEEN ? AND ?
             """;
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, doctorName);
-            stmt.setString(2, patientName);
+            stmt.setInt(1, doctorId);
+            stmt.setInt(2, patientId);
             stmt.setDate(3, Date.valueOf(startDate));
             stmt.setDate(4, Date.valueOf(endDate));
             if (excludeAppointmentId != null) {
@@ -329,5 +346,37 @@ public class AppointmentDao {
             }
         }
         return false;
+    }
+
+    // Вспомогательный метод для получения ID врача по полному имени
+    private int getDoctorIdByName(String fullName) throws SQLException {
+        String sql = "SELECT DoctorID FROM Doctors WHERE FirstName || ' ' || LastName = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, fullName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DoctorID");
+                } else {
+                    throw new SQLException("Врач с именем '" + fullName + "' не найден");
+                }
+            }
+        }
+    }
+
+    // Вспомогательный метод для получения ID пациента по полному имени
+    private int getPatientIdByName(String fullName) throws SQLException {
+        String sql = "SELECT PatientID FROM Patients WHERE FirstName || ' ' || LastName = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, fullName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("PatientID");
+                } else {
+                    throw new SQLException("Пациент с именем '" + fullName + "' не найден");
+                }
+            }
+        }
     }
 }
