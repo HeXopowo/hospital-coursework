@@ -294,7 +294,7 @@ public class AppointmentsController {
     }
 
     @FXML
-    private void handleDeleteAppointment() {
+    public void handleDeleteAppointment() {
         Appointment selected = appointmentTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showError("Выберите приём для удаления.");
