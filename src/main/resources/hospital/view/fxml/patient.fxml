@@ -54,6 +54,19 @@
                     </TableView>
                 </VBox>
             </Tab>
+            <Tab text="Мой учёт" closable="false">
+                <VBox spacing="5">
+                    <Label text="Вы состоите на учёте у следующих врачей: "/>
+                    <TableView fx:id="registrationsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="regDoctorColumn" text="Врач" prefWidth="200"/>
+                            <TableColumn fx:id="regDateColumn" text="Дата постановки" prefWidth="120"/>
+                            <TableColumn fx:id="regDiagnosisColumn" text="Диагноз" prefWidth="250"/>
+                            <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="200"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
         </tabs>
     </TabPane>
 </VBox>

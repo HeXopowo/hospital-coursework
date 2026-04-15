@@ -127,12 +127,15 @@ public class PatManController {
         alert.setTitle("Подтверждение удаления");
         alert.setHeaderText("Удалить пациента?");
         alert.setContentText("Вы уверены, что хотите удалить пациента " +
-                selected.getFirstName() + " " + selected.getLastName() + "?");
+                selected.getFirstName() + " " + selected.getLastName() +
+                "? Все его данные (приёмы, рецепты, медзаписи, учёт) будут удалены без возможности восстановления.");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    patientDao.deletePatient(selected.getPatientId());
+                    // Используем архивацию
+                    patientDao.archivePatient(selected.getPatientId(), "admin"); // или текущий пользователь
                     loadPatientsFromDB();
+                    showInfo("Пациент удалён (архивирован).");
                 } catch (SQLException e) {
                     showAlert("Ошибка при удалении пациента: " + e.getMessage());
                     e.printStackTrace();
@@ -155,7 +158,7 @@ public class PatManController {
         TextField districtField = new TextField();
         TextField addressField = new TextField();
 
-        // Добавляем TextFormatter для проверки ввода только цифр в поле участка
+        // TextFormatter для поля "Участок" (только цифры)
         districtField.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             if (newText.matches("\\d*")) {
@@ -164,7 +167,6 @@ public class PatManController {
             return null;
         }));
 
-        // Подсказки для полей ввода
         firstNameField.setPromptText("Имя");
         lastNameField.setPromptText("Фамилия");
         phoneField.setPromptText("+79161234567");
@@ -189,7 +191,6 @@ public class PatManController {
         GridPane grid = new GridPane();
         grid.setVgap(8);
         grid.setHgap(10);
-
         grid.addRow(0, new Label("Имя:"), firstNameField);
         grid.addRow(1, new Label("Фамилия:"), lastNameField);
         grid.addRow(2, new Label("Дата рождения:"), birthDatePicker);
@@ -201,34 +202,41 @@ public class PatManController {
         grid.addRow(8, new Label("Адрес:"), addressField);
 
         dialog.getDialogPane().setContent(grid);
+
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
-                Patient p = new Patient();
-                p.setFirstName(firstNameField.getText());
-                p.setLastName(lastNameField.getText());
-                p.setBirthDate(birthDatePicker.getValue());
-                p.setPhoneNumber(phoneField.getText());
-                p.setEmail(emailField.getText());
-                p.setSnils(snilsField.getText());
-                p.setPolicyOMS(policyField.getText());
-
-                // Преобразуем текст в int для участка
                 try {
-                    if (!districtField.getText().isEmpty()) {
-                        p.setDistrict(Integer.parseInt(districtField.getText()));
+                    Patient p = new Patient();
+                    p.setFirstName(firstNameField.getText());
+                    p.setLastName(lastNameField.getText());
+                    p.setBirthDate(birthDatePicker.getValue());
+                    p.setPhoneNumber(phoneField.getText());
+                    p.setEmail(emailField.getText());
+                    p.setSnils(snilsField.getText());
+                    p.setPolicyOMS(policyField.getText());
+
+                    // Участок (int)
+                    String districtText = districtField.getText();
+                    if (districtText != null && !districtText.isEmpty()) {
+                        p.setDistrict(Integer.parseInt(districtText));
                     } else {
-                        p.setDistrict(0); // или значение по умолчанию
+                        p.setDistrict(0);
                     }
+
+                    p.setAddress(addressField.getText());
+                    if (patient != null) {
+                        p.setPatientId(patient.getPatientId());
+                    }
+                    return p;
                 } catch (NumberFormatException e) {
-                    showAlert("Ошибка", "Участок должен быть числом");
+                    // Сначала обрабатываем NumberFormatException
+                    showAlert("Ошибка ввода: Участок должен быть целым числом");
+                    return null;
+                } catch (IllegalArgumentException e) {
+                    // Затем обрабатываем общие ошибки валидации
+                    showAlert("Ошибка ввода: " + e.getMessage());
                     return null;
                 }
-
-                p.setAddress(addressField.getText());
-                if (patient != null) {
-                    p.setPatientId(patient.getPatientId());
-                }
-                return p;
             }
             return null;
         });
@@ -247,6 +255,14 @@ public class PatManController {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Внимание");
         alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Информация");
+        alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
