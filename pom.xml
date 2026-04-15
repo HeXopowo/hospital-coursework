@@ -19,7 +19,6 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>21.0.2</javafx.version>
-        <!-- Если у вас версия JavaFX SDK 21.0.7, поменяйте путь ниже -->
         <path.to.javafx.lib>C:/Users/msang/Desktop/hospital2/javafx-sdk-21.0.2/lib</path.to.javafx.lib>
     </properties>
 
@@ -104,7 +103,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.14.2</version>  <!-- Последняя стабильная версия -->
+            <version>5.14.2</version>
             <scope>test</scope>
         </dependency>
 
