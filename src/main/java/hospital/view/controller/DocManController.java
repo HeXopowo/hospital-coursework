@@ -174,19 +174,27 @@ public class DocManController {
         grid.addRow(5, new Label("Email:"), emailField);
 
         dialog.getDialogPane().setContent(grid);
+
+        // ИСПРАВЛЕНИЕ: добавлен блок try-catch для перехвата исключений валидации
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
-                Doctor d = new Doctor();
-                d.setFirstName(firstNameField.getText());
-                d.setLastName(lastNameField.getText());
-                d.setSpecialization(specializationField.getText());
-                d.setRoomNumber(roomField.getText());
-                d.setSchedule(scheduleField.getText());
-                d.setEmail(emailField.getText());
-                if (doctor != null) {
-                    d.setDoctorId(doctor.getDoctorId());
+                try {
+                    Doctor d = new Doctor();
+                    d.setFirstName(firstNameField.getText());
+                    d.setLastName(lastNameField.getText());
+                    d.setSpecialization(specializationField.getText());
+                    d.setRoomNumber(roomField.getText());
+                    d.setSchedule(scheduleField.getText());
+                    d.setEmail(emailField.getText());
+                    if (doctor != null) {
+                        d.setDoctorId(doctor.getDoctorId());
+                    }
+                    return d;
+                } catch (IllegalArgumentException e) {
+                    // Выводим сообщение об ошибке и не закрываем диалог
+                    showAlert("Ошибка ввода: " + e.getMessage());
+                    return null;
                 }
-                return d;
             }
             return null;
         });
