@@ -158,12 +158,9 @@ public class PatManController {
         TextField districtField = new TextField();
         TextField addressField = new TextField();
 
-        // TextFormatter для поля "Участок" (только цифры)
         districtField.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d*")) {
-                return change;
-            }
+            if (newText.matches("\\d*")) return change;
             return null;
         }));
 
@@ -203,43 +200,44 @@ public class PatManController {
 
         dialog.getDialogPane().setContent(grid);
 
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            try {
+                Patient p = new Patient();
+                p.setFirstName(firstNameField.getText());
+                p.setLastName(lastNameField.getText());
+                p.setBirthDate(birthDatePicker.getValue());
+                p.setPhoneNumber(phoneField.getText());
+                p.setEmail(emailField.getText());
+                p.setSnils(snilsField.getText());
+                p.setPolicyOMS(policyField.getText());
+
+                String districtText = districtField.getText();
+                if (districtText != null && !districtText.isEmpty()) {
+                    p.setDistrict(Integer.parseInt(districtText));
+                } else {
+                    p.setDistrict(0);
+                }
+
+                p.setAddress(addressField.getText());
+                if (patient != null) p.setPatientId(patient.getPatientId());
+                dialog.setResult(p);
+            } catch (NumberFormatException e) {
+                showAlert("Ошибка ввода: Участок должен быть целым числом");
+                event.consume();
+            } catch (IllegalArgumentException e) {
+                showAlert("Ошибка ввода: " + e.getMessage());
+                event.consume();
+            }
+        });
+
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
-                try {
-                    Patient p = new Patient();
-                    p.setFirstName(firstNameField.getText());
-                    p.setLastName(lastNameField.getText());
-                    p.setBirthDate(birthDatePicker.getValue());
-                    p.setPhoneNumber(phoneField.getText());
-                    p.setEmail(emailField.getText());
-                    p.setSnils(snilsField.getText());
-                    p.setPolicyOMS(policyField.getText());
-
-                    // Участок (int)
-                    String districtText = districtField.getText();
-                    if (districtText != null && !districtText.isEmpty()) {
-                        p.setDistrict(Integer.parseInt(districtText));
-                    } else {
-                        p.setDistrict(0);
-                    }
-
-                    p.setAddress(addressField.getText());
-                    if (patient != null) {
-                        p.setPatientId(patient.getPatientId());
-                    }
-                    return p;
-                } catch (NumberFormatException e) {
-                    // Сначала обрабатываем NumberFormatException
-                    showAlert("Ошибка ввода: Участок должен быть целым числом");
-                    return null;
-                } catch (IllegalArgumentException e) {
-                    // Затем обрабатываем общие ошибки валидации
-                    showAlert("Ошибка ввода: " + e.getMessage());
-                    return null;
-                }
+                return dialog.getResult();
             }
             return null;
         });
+
         return dialog;
     }
 

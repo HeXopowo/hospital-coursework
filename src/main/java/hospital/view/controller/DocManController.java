@@ -175,29 +175,35 @@ public class DocManController {
 
         dialog.getDialogPane().setContent(grid);
 
-        // ИСПРАВЛЕНИЕ: добавлен блок try-catch для перехвата исключений валидации
+        // Получаем кнопку OK
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+
+        // Перехватываем событие нажатия на OK
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            try {
+                Doctor d = new Doctor();
+                d.setFirstName(firstNameField.getText());
+                d.setLastName(lastNameField.getText());
+                d.setSpecialization(specializationField.getText());
+                d.setRoomNumber(roomField.getText());
+                d.setSchedule(scheduleField.getText());
+                d.setEmail(emailField.getText());
+                if (doctor != null) d.setDoctorId(doctor.getDoctorId());
+                dialog.setResult(d); // сохраняем результат
+                // Если всё прошло успешно, диалог закроется автоматически
+            } catch (IllegalArgumentException e) {
+                showAlert("Ошибка ввода: " + e.getMessage());
+                event.consume(); // предотвращает закрытие диалога
+            }
+        });
+
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
-                try {
-                    Doctor d = new Doctor();
-                    d.setFirstName(firstNameField.getText());
-                    d.setLastName(lastNameField.getText());
-                    d.setSpecialization(specializationField.getText());
-                    d.setRoomNumber(roomField.getText());
-                    d.setSchedule(scheduleField.getText());
-                    d.setEmail(emailField.getText());
-                    if (doctor != null) {
-                        d.setDoctorId(doctor.getDoctorId());
-                    }
-                    return d;
-                } catch (IllegalArgumentException e) {
-                    // Выводим сообщение об ошибке и не закрываем диалог
-                    showAlert("Ошибка ввода: " + e.getMessage());
-                    return null;
-                }
+                return dialog.getResult();
             }
             return null;
         });
+
         return dialog;
     }
 
