@@ -19,7 +19,6 @@
         <tabs>
             <Tab text="Врачи" closable="false">
                 <VBox spacing="5">
-                    <!-- Добавлено поле поиска -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск врачей:"/>
                         <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача..." prefWidth="250"/>
@@ -39,7 +38,6 @@
             </Tab>
             <Tab text="Пациенты" closable="false">
                 <VBox spacing="5">
-                    <!-- Добавлено поле поиска -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск пациентов:"/>
                         <TextField fx:id="searchPatientsField" promptText="Поиск по ФИО пациента..." prefWidth="250"/>
@@ -56,6 +54,19 @@
                             <TableColumn fx:id="policyColumn" text="Полис ОМС" prefWidth="120"/>
                             <TableColumn fx:id="districtColumn" text="Участок" prefWidth="80"/>
                             <TableColumn fx:id="addressColumn" text="Адрес" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            <Tab text="Учёт пациентов" closable="false">
+                <VBox spacing="5">
+                    <Label text="Активные учётные записи пациентов: "/>
+                    <TableView fx:id="registrationsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="regPatientColumn" text="Пациент" prefWidth="200"/>
+                            <TableColumn fx:id="regDoctorColumn" text="Врач" prefWidth="200"/>
+                            <TableColumn fx:id="regDateColumn" text="Дата постановки" prefWidth="120"/>
+                            <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="200"/>
                         </columns>
                     </TableView>
                 </VBox>

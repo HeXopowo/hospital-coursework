@@ -5,6 +5,7 @@ import hospital.PatientDao;
 import hospital.daomodel.Doctor;
 import hospital.daomodel.Patient;
 import hospital.daomodel.User;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,7 +16,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
+import hospital.daomodel.PatientRegistration;
+import hospital.PatientRegistrationDao;
 
 public class AdminController {
     @FXML private TabPane adminTabPane;
@@ -45,6 +49,16 @@ public class AdminController {
     @FXML private TableColumn<Patient, String> addressColumn;
     @FXML private TextField searchPatientsField;
 
+    // Таблица учёта пациентов
+    @FXML private TableView<PatientRegistration> registrationsTable;
+    @FXML private TableColumn<PatientRegistration, String> regPatientColumn;
+    @FXML private TableColumn<PatientRegistration, String> regDoctorColumn;
+    @FXML private TableColumn<PatientRegistration, LocalDate> regDateColumn;
+    @FXML private TableColumn<PatientRegistration, String> regNotesColumn;
+
+    private ObservableList<PatientRegistration> registrationsData = FXCollections.observableArrayList();
+    private PatientRegistrationDao registrationDao = new PatientRegistrationDao();
+
     private ObservableList<Doctor> doctorsData = FXCollections.observableArrayList();
     private ObservableList<Patient> patientsData = FXCollections.observableArrayList();
 
@@ -63,6 +77,7 @@ public class AdminController {
         setupPatientsTable();
         loadData();
         setupSearchFilters();
+        setupRegistrationsTable();
     }
 
     private void setupDoctorsTable() {
@@ -92,9 +107,18 @@ public class AdminController {
         patientsTable.setItems(patientsData);
     }
 
+    private void setupRegistrationsTable() {
+        regPatientColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPatientName()));
+        regDoctorColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDoctorName()));
+        regDateColumn.setCellValueFactory(new PropertyValueFactory<>("registrationDate"));
+        regNotesColumn.setCellValueFactory(new PropertyValueFactory<>("notes"));
+        registrationsTable.setItems(registrationsData);
+    }
+
     private void loadData() {
         loadDoctorsData();
         loadPatientsData();
+        loadRegistrationsData();
     }
 
     private void loadDoctorsData() {
@@ -114,6 +138,16 @@ public class AdminController {
         } catch (SQLException e) {
             e.printStackTrace();
             showError("Ошибка при загрузке пациентов: " + e.getMessage());
+        }
+    }
+
+    private void loadRegistrationsData() {
+        try {
+            registrationsData.clear();
+            registrationsData.addAll(registrationDao.getAllActiveRegistrations());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showError("Ошибка загрузки учётных записей.");
         }
     }
 
