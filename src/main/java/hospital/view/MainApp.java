@@ -1,6 +1,6 @@
 package hospital.view;
 
-import hospital.api.RestApiServer;
+// import hospital.api.RestApiServer;
 import hospital.daomodel.User;
 import hospital.view.controller.LoginController;
 import hospital.view.controller.MainController;
