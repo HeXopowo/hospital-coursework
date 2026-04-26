@@ -22,7 +22,7 @@ public class UserDao {
                     user.setUsername(rs.getString("Username"));
                     user.setPassword(rs.getString("Password"));
                     user.setRole(rs.getString("Role"));
-                    user.setRoleId(rs.getInt("RoleID")); // Теперь содержит соответствующий ID
+                    user.setRoleId(rs.getInt("RoleID"));
                     return user;
                 }
             }
