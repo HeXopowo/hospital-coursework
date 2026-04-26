@@ -1,5 +1,6 @@
 package hospital.view;
 
+// import hospital.api.RestApiServer;
 import hospital.daomodel.User;
 import hospital.view.controller.LoginController;
 import hospital.view.controller.MainController;
@@ -17,6 +18,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         showLogin();
+        RestApiServer.start();
     }
 
     private void showLogin() throws Exception {
