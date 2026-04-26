@@ -103,6 +103,7 @@ public class DoctorDao {
            OR LOWER(LastName) LIKE LOWER(?)
            OR LOWER(FirstName || ' ' || LastName) LIKE LOWER(?)
            OR LOWER(LastName || ' ' || FirstName) LIKE LOWER(?)
+           OR LOWER(Specialization) LIKE LOWER(?)      
         ORDER BY LastName, FirstName
     """;
 
@@ -114,6 +115,7 @@ public class DoctorDao {
             stmt.setString(2, likeTerm);
             stmt.setString(3, likeTerm);
             stmt.setString(4, likeTerm);
+            stmt.setString(5, likeTerm);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

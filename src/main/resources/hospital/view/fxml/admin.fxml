@@ -22,7 +22,7 @@
                 <VBox spacing="5">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск врачей:"/>
-                        <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача..." prefWidth="250"/>
+                        <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача или специальности..." prefWidth="250"/>
                         <Button text="Обновить" onAction="#handleRefreshDoctors"/>
                     </HBox>
                     <TableView fx:id="doctorsTable" VBox.vgrow="ALWAYS">
