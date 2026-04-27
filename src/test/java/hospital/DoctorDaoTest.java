@@ -29,15 +29,11 @@ class DoctorDaoTest {
         statement = mock(Statement.class);
         resultSet = mock(ResultSet.class);
 
-        // Мокаем статический метод DatabaseConnection.getConnection()
         mockedStatic = mockStatic(DatabaseConnection.class);
         mockedStatic.when(DatabaseConnection::getConnection).thenReturn(connection);
 
-        // Настройка для методов, использующих createStatement() (например, getAllDoctors)
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery(anyString())).thenReturn(resultSet);
-
-        // Настройка для методов, использующих prepareStatement()
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(connection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenReturn(preparedStatement);
@@ -52,10 +48,8 @@ class DoctorDaoTest {
 
     @Test
     void testGetAllDoctors_ExecutesCorrectQuery() throws SQLException {
-        // Мокаем ResultSet: сначала одна запись, потом пусто
         when(resultSet.next()).thenReturn(true).thenReturn(false);
 
-        // Мокаем ВСЕ поля, которые читаются в extractDoctorFromResultSet
         when(resultSet.getInt("DoctorID")).thenReturn(1);
         when(resultSet.getString("FirstName")).thenReturn("Иван");
         when(resultSet.getString("LastName")).thenReturn("Петров");
@@ -172,12 +166,11 @@ class DoctorDaoTest {
     }
 
     @Test
-    void testSearchDoctors_WithSearchTerm_ReturnsList() throws SQLException {
+    void testSearchDoctors_WithSearchTerm_FullName() throws SQLException {
         String searchTerm = "Анна";
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true).thenReturn(false);
 
-        // Мокаем ВСЕ поля
         when(resultSet.getInt("DoctorID")).thenReturn(5);
         when(resultSet.getString("FirstName")).thenReturn("Анна");
         when(resultSet.getString("LastName")).thenReturn("Сидорова");
@@ -193,6 +186,67 @@ class DoctorDaoTest {
         verify(preparedStatement).setString(2, "%" + searchTerm + "%");
         verify(preparedStatement).setString(3, "%" + searchTerm + "%");
         verify(preparedStatement).setString(4, "%" + searchTerm + "%");
+        verify(preparedStatement).setString(5, "%" + searchTerm + "%");
         verify(preparedStatement).executeQuery();
+    }
+
+    @Test
+    void testSearchDoctors_BySpecialization() throws SQLException {
+        String searchTerm = "Хирург";
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true).thenReturn(false);
+
+        when(resultSet.getInt("DoctorID")).thenReturn(10);
+        when(resultSet.getString("FirstName")).thenReturn("Иван");
+        when(resultSet.getString("LastName")).thenReturn("Петров");
+        when(resultSet.getString("Specialization")).thenReturn("Хирург");
+        when(resultSet.getString("RoomNumber")).thenReturn("202");
+        when(resultSet.getString("Schedule")).thenReturn("Вт-Сб 10-16");
+        when(resultSet.getString("Email")).thenReturn("ivan@hospital.ru");
+
+        List<Doctor> found = doctorDao.searchDoctors(searchTerm);
+
+        assertFalse(found.isEmpty());
+        assertEquals("Хирург", found.get(0).getSpecialization());
+        verify(preparedStatement).setString(5, "%" + searchTerm + "%");
+    }
+
+    @Test
+    void testSearchDoctors_EmptySearchTerm_ReturnsAllDoctors() throws SQLException {
+        String searchTerm = "";
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true, true, true, false);  // три записи
+        when(resultSet.getInt("DoctorID")).thenReturn(1, 2, 3);
+        when(resultSet.getString("FirstName")).thenReturn("Анна", "Иван", "Ольга");
+        when(resultSet.getString("LastName")).thenReturn("Сидорова", "Петров", "Кузнецова");
+        when(resultSet.getString("Specialization")).thenReturn("Терапевт", "Хирург", "Окулист");
+        when(resultSet.getString("RoomNumber")).thenReturn("101", "202", "303");
+        when(resultSet.getString("Schedule")).thenReturn("Пн-Пт 9-18", "Вт-Сб 10-16", "Пн-Ср 8-14");
+        when(resultSet.getString("Email")).thenReturn("anna@hosp.ru", "ivan@hosp.ru", "olga@hosp.ru");
+
+        List<Doctor> found = doctorDao.searchDoctors(searchTerm);
+
+        assertEquals(3, found.size());
+        verify(preparedStatement).setString(1, "%%");
+        verify(preparedStatement).setString(2, "%%");
+        verify(preparedStatement).setString(3, "%%");
+        verify(preparedStatement).setString(4, "%%");
+        verify(preparedStatement).setString(5, "%%");
+    }
+
+    @Test
+    void testSearchDoctors_NonExistentTerm_ReturnsEmptyList() throws SQLException {
+        String searchTerm = "XYZNonExistent123";
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        List<Doctor> found = doctorDao.searchDoctors(searchTerm);
+
+        assertTrue(found.isEmpty());
+        verify(preparedStatement).setString(1, "%" + searchTerm + "%");
+        verify(preparedStatement).setString(2, "%" + searchTerm + "%");
+        verify(preparedStatement).setString(3, "%" + searchTerm + "%");
+        verify(preparedStatement).setString(4, "%" + searchTerm + "%");
+        verify(preparedStatement).setString(5, "%" + searchTerm + "%");
     }
 }
