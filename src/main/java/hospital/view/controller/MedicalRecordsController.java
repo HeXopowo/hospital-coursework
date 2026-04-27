@@ -106,7 +106,7 @@ public class MedicalRecordsController {
         if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
             titleLabel.setText("Мои медицинские записи");
             personColumn.setText("Врач");
-            searchField.setPromptText("Поиск по ФИО врача...");
+            searchField.setPromptText("Поиск по ФИО врача или специальности...");
             doctorButtonsPanel.setVisible(false);
             doctorButtonsPanel.setManaged(false);
         } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
