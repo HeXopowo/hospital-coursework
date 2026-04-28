@@ -1,4 +1,5 @@
 package hospital.view.controller;
+
 import hospital.PrescriptionDao;
 import hospital.daomodel.Prescription;
 import hospital.daomodel.User;

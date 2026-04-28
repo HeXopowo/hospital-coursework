@@ -1,4 +1,5 @@
 package hospital.daomodel;
+import java.time.LocalDate;
 import java.util.regex.Pattern;
 public class Doctor {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
@@ -63,4 +64,19 @@ public class Doctor {
         }
         this.email = email.trim().toLowerCase();
     }
+
+    private int archivedId; // временное поле для хранения ID из архива
+
+    public int getArchivedId() {
+        return archivedId;
+    }
+
+    public void setArchivedId(int archivedId) {
+        this.archivedId = archivedId;
+    }
+
+    private LocalDate archivedDate; // не сохраняется в БД
+
+    public LocalDate getArchivedDate() { return archivedDate; }
+    public void setArchivedDate(LocalDate archivedDate) { this.archivedDate = archivedDate; }
 }

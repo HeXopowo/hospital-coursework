@@ -1,4 +1,5 @@
 package hospital.view.controller;
+
 import hospital.daomodel.User;
 import hospital.UserDao;
 import hospital.view.MainApp;
@@ -6,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+
 public class LoginController {
     private MainApp mainApp;
     @FXML
@@ -17,7 +19,7 @@ public class LoginController {
         this.mainApp = mainApp;
     }
     @FXML
-    private void handleLogin() {
+    public void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
         User user = null;
@@ -47,7 +49,7 @@ public class LoginController {
         alert.showAndWait();
     }
     @FXML
-    private void handleCancel() {
+    public void handleCancel() {
         usernameField.clear();
         passwordField.clear();
     }
