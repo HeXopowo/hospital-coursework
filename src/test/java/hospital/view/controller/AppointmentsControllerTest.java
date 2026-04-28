@@ -1,5 +1,6 @@
 package hospital.view.controller;
 
+import hospital.util.Constants;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +12,7 @@ public class AppointmentsControllerTest {
         java.lang.reflect.Method method = AppointmentsController.class.getDeclaredMethod("isPastDateForbidden", LocalDateTime.class, String.class);
         method.setAccessible(true);
         LocalDateTime past = LocalDateTime.now().minusDays(1);
-        boolean result = (boolean) method.invoke(controller, past, "Запланирован");
+        boolean result = (boolean) method.invoke(controller, past, Constants.STATUS_SCHEDULED);
         assertTrue(result);
     }
 
@@ -21,7 +22,7 @@ public class AppointmentsControllerTest {
         java.lang.reflect.Method method = AppointmentsController.class.getDeclaredMethod("isPastDateForbidden", LocalDateTime.class, String.class);
         method.setAccessible(true);
         LocalDateTime future = LocalDateTime.now().plusDays(1);
-        boolean result = (boolean) method.invoke(controller, future, "Запланирован");
+        boolean result = (boolean) method.invoke(controller, future, Constants.STATUS_SCHEDULED);
         assertFalse(result);
     }
 }

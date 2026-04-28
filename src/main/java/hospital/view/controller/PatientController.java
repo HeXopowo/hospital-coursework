@@ -5,6 +5,8 @@ import hospital.PatientDao;
 import hospital.daomodel.Doctor;
 import hospital.daomodel.Patient;
 import hospital.daomodel.User;
+import hospital.service.DoctorSearchService;
+import hospital.util.Constants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -64,6 +66,7 @@ public class PatientController {
     private User currentUser;
     private PatientDao patientDao = new PatientDao();
     private DoctorDao doctorDao = new DoctorDao();
+    private final DoctorSearchService doctorSearchService = new DoctorSearchService();
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
@@ -114,7 +117,7 @@ public class PatientController {
         }
         try {
             patientData.clear();
-            if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
                 Patient patient = patientDao.getPatientById(currentUser.getRoleId());
                 if (patient != null) {
                     patientData.add(patient);
@@ -190,15 +193,9 @@ public class PatientController {
     }
 
     private void searchDoctors(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            loadDoctorsData(); // Показать всех врачей
-            return;
-        }
-
         try {
             doctorsData.clear();
-            List<Doctor> foundDoctors = doctorDao.searchDoctors(searchTerm.trim());
-            doctorsData.addAll(foundDoctors);
+            doctorsData.addAll(doctorSearchService.searchDoctors(searchTerm));
         } catch (SQLException e) {
             e.printStackTrace();
             showError("Ошибка при поиске врачей.");
@@ -225,7 +222,7 @@ public class PatientController {
     }
 
     private void loadRegistrationsData() {
-        if (currentUser == null || !"PATIENT".equalsIgnoreCase(currentUser.getRole())) return;
+        if (currentUser == null || !Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) return;
         try {
             registrationsData.clear();
             registrationsData.addAll(registrationDao.getActiveRegistrationsByPatient(currentUser.getRoleId()));

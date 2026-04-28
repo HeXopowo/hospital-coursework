@@ -1,6 +1,8 @@
 package hospital;
 
 import hospital.daomodel.Appointment;
+import hospital.util.Constants;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ public class AppointmentDao {
     public List<Appointment> getAppointmentsByRole(String role, int roleId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql;
-        if ("PATIENT".equalsIgnoreCase(role)) {
+        if (Constants.ROLE_PATIENT.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -30,7 +32,7 @@ public class AppointmentDao {
                 JOIN Patients p ON a.PatientID = p.PatientID
                 WHERE a.PatientID = ?
             """;
-        } else if ("DOCTOR".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -45,7 +47,7 @@ public class AppointmentDao {
                 JOIN Patients p ON a.PatientID = p.PatientID
                 WHERE a.DoctorID = ?
             """;
-        } else if ("ADMIN".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -66,7 +68,7 @@ public class AppointmentDao {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (!"ADMIN".equalsIgnoreCase(role)) {
+            if (!Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
                 stmt.setInt(1, roleId);
             }
 
@@ -164,7 +166,7 @@ public class AppointmentDao {
         List<Appointment> appointments = new ArrayList<>();
         String sql;
 
-        if ("PATIENT".equalsIgnoreCase(role)) {
+        if (Constants.ROLE_PATIENT.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -183,7 +185,7 @@ public class AppointmentDao {
                    OR LOWER(d.FirstName || ' ' || d.LastName) LIKE LOWER(?))
                 ORDER BY a.AppointmentDateTime DESC
             """;
-        } else if ("DOCTOR".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -202,7 +204,7 @@ public class AppointmentDao {
                    OR LOWER(p.FirstName || ' ' || p.LastName) LIKE LOWER(?))
                 ORDER BY a.AppointmentDateTime DESC
             """;
-        } else if ("ADMIN".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     a.AppointmentID,
@@ -232,17 +234,17 @@ public class AppointmentDao {
 
             String likeTerm = "%" + searchTerm + "%";
 
-            if ("PATIENT".equalsIgnoreCase(role)) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(role)) {
                 stmt.setInt(1, roleId);
                 stmt.setString(2, likeTerm);
                 stmt.setString(3, likeTerm);
                 stmt.setString(4, likeTerm);
-            } else if ("DOCTOR".equalsIgnoreCase(role)) {
+            } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(role)) {
                 stmt.setInt(1, roleId);
                 stmt.setString(2, likeTerm);
                 stmt.setString(3, likeTerm);
                 stmt.setString(4, likeTerm);
-            } else if ("ADMIN".equalsIgnoreCase(role)) {
+            } else if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
                 for (int i = 1; i <= 6; i++) {
                     stmt.setString(i, likeTerm);
                 }

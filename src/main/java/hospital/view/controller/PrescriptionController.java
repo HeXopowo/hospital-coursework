@@ -3,6 +3,7 @@ package hospital.view.controller;
 import hospital.PrescriptionDao;
 import hospital.daomodel.Prescription;
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -37,7 +38,7 @@ public class PrescriptionController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if ("DOCTOR".equalsIgnoreCase(user.getRole())) {
+        if (Constants.ROLE_DOCTOR.equalsIgnoreCase(user.getRole())) {
             personColumn.setText("Пациент");
             doctorForm.setVisible(true);
             doctorForm.setManaged(true);
@@ -53,7 +54,7 @@ public class PrescriptionController {
             doctorForm.setManaged(false);
         }
         // Показываем кнопки только для DOCTOR или ADMIN
-        boolean canEdit = "DOCTOR".equalsIgnoreCase(user.getRole()) || "ADMIN".equalsIgnoreCase(user.getRole());
+        boolean canEdit = Constants.ROLE_DOCTOR.equalsIgnoreCase(user.getRole()) || Constants.ROLE_ADMIN.equalsIgnoreCase(user.getRole());
         if (editButton != null) {
             editButton.setVisible(canEdit);
             editButton.setManaged(canEdit);
@@ -68,7 +69,7 @@ public class PrescriptionController {
         personColumn.setCellValueFactory(cellData -> {
             Prescription p = cellData.getValue();
             if (currentUser == null) return new SimpleStringProperty("");
-            return "DOCTOR".equalsIgnoreCase(currentUser.getRole())
+            return Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())
                     ? new SimpleStringProperty(p.getPatientName())
                     : new SimpleStringProperty(p.getDoctorName());
         });

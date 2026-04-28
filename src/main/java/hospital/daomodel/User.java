@@ -1,5 +1,7 @@
 package hospital.daomodel;
 
+import hospital.util.Constants;
+
 public class User {
     private int userId;
     private String username;
@@ -43,7 +45,7 @@ public class User {
     }
 
     public void setRole(String role) {
-        if (!"DOCTOR".equals(role) && !"PATIENT".equals(role) && !"ADMIN".equals(role)) {
+        if (!Constants.ROLE_DOCTOR.equals(role) && !Constants.ROLE_PATIENT.equals(role) && !Constants.ROLE_ADMIN.equals(role)) {
             throw new IllegalArgumentException("Недопустимая роль пользователя");
         }
         this.role = role;

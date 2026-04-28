@@ -8,6 +8,7 @@ import hospital.daomodel.Patient;
 import hospital.daomodel.PatientRegistration;
 import hospital.daomodel.User;
 import hospital.DatabaseConnection;
+import hospital.service.DoctorSearchService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -93,6 +94,7 @@ public class AdminController {
     private ObservableList<PatientRegistration> registrationsData = FXCollections.observableArrayList();
     private ObservableList<Patient> archivedPatientsData = FXCollections.observableArrayList();
     private ObservableList<Doctor> archivedDoctorsData = FXCollections.observableArrayList();
+    private final DoctorSearchService doctorSearchService = new DoctorSearchService();
 
     private User currentUser;
     private DoctorDao doctorDao = new DoctorDao();
@@ -397,13 +399,9 @@ public class AdminController {
     }
 
     private void searchDoctors(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            loadDoctorsData();
-            return;
-        }
         try {
             doctorsData.clear();
-            doctorsData.addAll(doctorDao.searchDoctors(searchTerm.trim()));
+            doctorsData.addAll(doctorSearchService.searchDoctors(searchTerm));
         } catch (SQLException e) {
             e.printStackTrace();
             showError("Ошибка при поиске врачей.");

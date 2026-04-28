@@ -1,6 +1,7 @@
 package hospital;
 
 import hospital.daomodel.Appointment;
+import hospital.util.Constants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,11 +47,11 @@ class AppointmentDaoTest {
         when(resultSet.getTimestamp("AppointmentDateTime")).thenReturn(Timestamp.valueOf(LocalDateTime.now()));
         when(resultSet.getString("DoctorName")).thenReturn("Анна Сидорова");
         when(resultSet.getString("PatientName")).thenReturn("Иванов Петр");
-        when(resultSet.getString("Status")).thenReturn("Запланирован");
+        when(resultSet.getString("Status")).thenReturn(Constants.STATUS_SCHEDULED);
         when(resultSet.getString("MedicalRecordNote")).thenReturn("");
         when(resultSet.getString("RoomNumber")).thenReturn("101");
 
-        List<Appointment> result = appointmentDao.searchAppointments("Петр", "DOCTOR", 1);
+        List<Appointment> result = appointmentDao.searchAppointments("Петр", Constants.ROLE_DOCTOR, 1);
 
         assertFalse(result.isEmpty());
         verify(preparedStatement).setInt(1, 1);
@@ -67,11 +68,11 @@ class AppointmentDaoTest {
         when(resultSet.getTimestamp("AppointmentDateTime")).thenReturn(Timestamp.valueOf(LocalDateTime.now()));
         when(resultSet.getString("DoctorName")).thenReturn("Иван Петров");
         when(resultSet.getString("PatientName")).thenReturn("Анна Сидорова");
-        when(resultSet.getString("Status")).thenReturn("Завершён");
+        when(resultSet.getString("Status")).thenReturn(Constants.STATUS_COMPLETED);
         when(resultSet.getString("MedicalRecordNote")).thenReturn("Осмотр");
         when(resultSet.getString("RoomNumber")).thenReturn("202");
 
-        List<Appointment> result = appointmentDao.searchAppointments("Иван", "PATIENT", 1);
+        List<Appointment> result = appointmentDao.searchAppointments("Иван", Constants.ROLE_PATIENT, 1);
 
         assertFalse(result.isEmpty());
         verify(preparedStatement).setInt(1, 1);
@@ -88,11 +89,11 @@ class AppointmentDaoTest {
         when(resultSet.getTimestamp("AppointmentDateTime")).thenReturn(Timestamp.valueOf(LocalDateTime.now()));
         when(resultSet.getString("DoctorName")).thenReturn("Доктор А", "Доктор Б");
         when(resultSet.getString("PatientName")).thenReturn("Пациент А", "Пациент Б");
-        when(resultSet.getString("Status")).thenReturn("Запланирован", "Завершён");
+        when(resultSet.getString("Status")).thenReturn(Constants.STATUS_SCHEDULED, Constants.STATUS_COMPLETED);
         when(resultSet.getString("MedicalRecordNote")).thenReturn("", "");
         when(resultSet.getString("RoomNumber")).thenReturn("101", "102");
 
-        List<Appointment> result = appointmentDao.searchAppointments("", "ADMIN", 0);
+        List<Appointment> result = appointmentDao.searchAppointments("", Constants.ROLE_ADMIN, 0);
 
         assertEquals(2, result.size());
     }

@@ -3,6 +3,7 @@ package hospital.view.controller;
 import hospital.AppointmentDao;
 import hospital.daomodel.Appointment;
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,16 +43,18 @@ public class AppointmentsController {
     private AppointmentDao appointmentDao = new AppointmentDao();
 
     private final ObservableList<String> statusOptions = FXCollections.observableArrayList(
-            "Запланирован", "Завершён", "Отменён", "Подтверждён"
+            Constants.STATUS_SCHEDULED,
+            Constants.STATUS_COMPLETED,
+            Constants.STATUS_CANCELLED,
+            Constants.STATUS_CONFIRMED
     );
-
-    private static final List<String> FORBIDDEN_PAST_STATUSES = Arrays.asList("Запланирован", "Подтверждён");
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final List<String> FORBIDDEN_PAST_STATUSES = Constants.FORBIDDEN_PAST_STATUSES;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = Constants.DATE_TIME_FORMATTER;
+    private static final DateTimeFormatter TIME_FORMATTER = Constants.TIME_FORMATTER;
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        if (user.getRole().equalsIgnoreCase("ADMIN")) {
+        if (user.getRole().equalsIgnoreCase(Constants.ROLE_ADMIN)) {
             titleLabel.setText("Все приёмы");
         } else {
             titleLabel.setText("Мои приёмы");
@@ -60,7 +63,7 @@ public class AppointmentsController {
             appointments.setAll(appointmentDao.getAppointmentsByRole(user.getRole(), user.getRoleId()));
             appointmentTable.setItems(appointments);
 
-            if (user.getRole().equalsIgnoreCase("ADMIN")) {
+            if (user.getRole().equalsIgnoreCase(Constants.ROLE_ADMIN)) {
                 titleLabel.setText("Все приёмы");
                 personColumn.setText("Пациент / Врач");
                 setupAdminView();
@@ -82,9 +85,9 @@ public class AppointmentsController {
                 adminForm.setManaged(false);
                 deleteButton.setVisible(false);
                 deleteButton.setManaged(false);
-                if (user.getRole().equalsIgnoreCase("DOCTOR")) {
+                if (user.getRole().equalsIgnoreCase(Constants.ROLE_DOCTOR)) {
                     personColumn.setText("Пациент");
-                } else if (user.getRole().equalsIgnoreCase("PATIENT")) {
+                } else if (user.getRole().equalsIgnoreCase(Constants.ROLE_PATIENT)) {
                     personColumn.setText("Врач");
                 }
             }
@@ -99,9 +102,9 @@ public class AppointmentsController {
             Appointment appt = cellData.getValue();
             if (currentUser == null) return new SimpleStringProperty("");
             return switch (currentUser.getRole().toUpperCase()) {
-                case "PATIENT" -> new SimpleStringProperty(appt.getDoctorName());
-                case "DOCTOR" -> new SimpleStringProperty(appt.getPatientName());
-                case "ADMIN" -> new SimpleStringProperty(appt.getPatientName() + " / " + appt.getDoctorName());
+                case Constants.ROLE_PATIENT -> new SimpleStringProperty(appt.getDoctorName());
+                case Constants.ROLE_DOCTOR -> new SimpleStringProperty(appt.getPatientName());
+                case Constants.ROLE_ADMIN -> new SimpleStringProperty(appt.getPatientName() + " / " + appt.getDoctorName());
                 default -> new SimpleStringProperty("");
             };
         });
@@ -120,7 +123,7 @@ public class AppointmentsController {
 
         // Автозаполнение формы при выборе строки
         appointmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null && currentUser != null && currentUser.getRole().equalsIgnoreCase("ADMIN")) {
+            if (newSelection != null && currentUser != null && currentUser.getRole().equalsIgnoreCase(Constants.ROLE_ADMIN)) {
                 populateFormWithSelectedAppointment(newSelection);
             }
         });
@@ -153,68 +156,100 @@ public class AppointmentsController {
 
     @FXML
     private void handleAddAppointment() {
-        String doctorName = doctorComboBox.getValue();
-        String patientName = patientComboBox.getValue();
-        LocalDate date = datePicker.getValue();
-        String time = timeField.getText();
-        String status = statusComboBox.getValue();
-        String note = noteField.getText();
+        if (!validateAppointmentInput()) return;
 
-        if (doctorName == null || patientName == null || date == null || time == null || time.isBlank()) {
-            showError("Пожалуйста, заполните все поля для назначения приёма.");
-            return;
-        }
-        if (!time.matches("^([01]?\\d|2[0-3]):[0-5]\\d$")) {
-            showError("Введите время в формате HH:mm");
-            return;
-        }
-        if (status == null) {
-            showError("Пожалуйста, выберите статус приёма.");
-            return;
-        }
-
-        String dateTime = date.toString() + " " + time + ":00";
         try {
-            LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
+            LocalDateTime appointmentDateTime = buildDateTime();
+            if (!validateDateTimeWithStatus(appointmentDateTime)) return;
 
-            // Проверка даты и статуса (нельзя назначать приём в прошлом со статусами "Запланирован" или "Подтверждён")
-            if (isPastDateForbidden(appointmentDateTime, status)) {
-                showError("Нельзя назначить приём со статусом \"" + status + "\" на прошедшую дату.");
-                return;
-            }
+            String doctorName = doctorComboBox.getValue();
+            String patientName = patientComboBox.getValue();
+            LocalDate date = datePicker.getValue();
+            String status = statusComboBox.getValue();
+            String note = noteField.getText();
 
-            // Получаем ID врача и пациента
             int doctorId = appointmentDao.getDoctorIdByName(doctorName);
             int patientId = appointmentDao.getPatientIdByName(patientName);
 
-            // Проверка занятости врача
-            if (appointmentDao.hasDoctorAppointmentAtTime(doctorId, appointmentDateTime, null)) {
-                showError("Врач уже занят в это время.");
-                return;
-            }
+            if (!checkDoctorAvailability(doctorId, appointmentDateTime)) return;
+            if (!checkPatientAvailability(patientId, appointmentDateTime)) return;
+            if (!checkFourteenDaysInterval(doctorName, patientName, date, null)) return;
 
-            // Проверка занятости пациента
-            if (appointmentDao.hasPatientAppointmentAtTime(patientId, appointmentDateTime, null)) {
-                showError("У пациента уже есть приём в это время (у другого врача).");
-                return;
-            }
-
-            // Проверка интервала 14 дней (с учётом возможного учёта)
-            if (appointmentDao.hasAppointmentWithinDays(doctorName, patientName, date, 13, null)) {
-                showError("Нельзя назначить приём чаще чем раз в 14 дней для одного пациента и врача (если пациент не состоит на учёте).");
-                return;
-            }
-
-            appointmentDao.addAppointment(doctorName, patientName, dateTime, status, note);
-            loadAppointmentsData();
-            clearForm();
+            saveAppointment(doctorName, patientName, appointmentDateTime, status, note);
         } catch (SQLException e) {
-            e.printStackTrace();
-            showError("Ошибка при добавлении приёма: " + e.getMessage());
+            showError("Ошибка БД: " + e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            showError("Ошибка при обработке данных: " + e.getMessage());
+            showError("Ошибка: " + e.getMessage());
         }
+    }
+
+    private boolean validateAppointmentInput() {
+        if (doctorComboBox.getValue() == null || patientComboBox.getValue() == null ||
+                datePicker.getValue() == null || timeField.getText() == null || timeField.getText().isBlank()) {
+            showError("Пожалуйста, заполните все поля для назначения приёма.");
+            return false;
+        }
+        if (!timeField.getText().matches(Constants.TIME_PATTERN)) {
+            showError("Введите время в формате HH:mm");
+            return false;
+        }
+        if (statusComboBox.getValue() == null) {
+            showError("Пожалуйста, выберите статус приёма.");
+            return false;
+        }
+        return true;
+    }
+
+    private LocalDateTime buildDateTime() {
+        String dateTimeStr = datePicker.getValue().toString() + " " + timeField.getText() + ":00";
+        return LocalDateTime.parse(dateTimeStr, Constants.DATE_TIME_FORMATTER);
+    }
+
+    private boolean validateDateTimeWithStatus(LocalDateTime dateTime) {
+        if (isPastDateForbidden(dateTime, statusComboBox.getValue())) {
+            showError("Нельзя назначить приём со статусом \"" + statusComboBox.getValue() + "\" на прошедшую дату.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkDoctorAvailability(int doctorId, LocalDateTime dateTime, Integer excludeId) throws SQLException {
+        if (appointmentDao.hasDoctorAppointmentAtTime(doctorId, dateTime, excludeId)) {
+            showError("Врач уже занят в это время.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkDoctorAvailability(int doctorId, LocalDateTime dateTime) throws SQLException {
+        return checkDoctorAvailability(doctorId, dateTime, null);
+    }
+
+    private boolean checkPatientAvailability(int patientId, LocalDateTime dateTime, Integer excludeId) throws SQLException {
+        if (appointmentDao.hasPatientAppointmentAtTime(patientId, dateTime, excludeId)) {
+            showError("У пациента уже есть приём в это время (у другого врача).");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkPatientAvailability(int patientId, LocalDateTime dateTime) throws SQLException {
+        return checkPatientAvailability(patientId, dateTime, null);
+    }
+
+    private boolean checkFourteenDaysInterval(String doctorName, String patientName, LocalDate date, Integer excludeId) throws SQLException {
+        if (appointmentDao.hasAppointmentWithinDays(doctorName, patientName, date, 13, excludeId)) {
+            showError("Нельзя назначить приём чаще чем раз в 14 дней для одного пациента и врача (если пациент не состоит на учёте).");
+            return false;
+        }
+        return true;
+    }
+
+    private void saveAppointment(String doctorName, String patientName, LocalDateTime dateTime, String status, String note) throws SQLException {
+        String dateTimeStr = dateTime.format(Constants.DATE_TIME_FORMATTER);
+        appointmentDao.addAppointment(doctorName, patientName, dateTimeStr, status, note);
+        loadAppointmentsData();
+        clearForm();
     }
 
     @FXML
@@ -224,74 +259,44 @@ public class AppointmentsController {
             showError("Выберите приём для редактирования.");
             return;
         }
-        String doctorName = doctorComboBox.getValue();
-        String patientName = patientComboBox.getValue();
-        LocalDate date = datePicker.getValue();
-        String time = timeField.getText();
-        String status = statusComboBox.getValue();
-        String note = noteField.getText();
 
-        if (doctorName == null || patientName == null || date == null || time == null || time.isBlank()) {
-            showError("Пожалуйста, заполните все поля для редактирования приёма.");
-            return;
-        }
-        if (!time.matches("^([01]?\\d|2[0-3]):[0-5]\\d$")) {
-            showError("Введите время в формате HH:mm");
-            return;
-        }
-        if (status == null) {
-            showError("Пожалуйста, выберите статус приёма.");
-            return;
-        }
+        if (!validateAppointmentInput()) return;
 
-        String dateTime = date.toString() + " " + time + ":00";
         try {
-            LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
+            LocalDateTime newDateTime = buildDateTime();
+            if (!validateDateTimeWithStatus(newDateTime)) return;
 
-            // Проверка даты и статуса
-            if (isPastDateForbidden(appointmentDateTime, status)) {
-                showError("Нельзя установить статус \"" + status + "\" для приёма на прошедшую дату.");
-                return;
-            }
+            String doctorName = doctorComboBox.getValue();
+            String patientName = patientComboBox.getValue();
+            LocalDate date = datePicker.getValue();
+            String status = statusComboBox.getValue();
+            String note = noteField.getText();
 
-            // Получаем ID врача и пациента
             int doctorId = appointmentDao.getDoctorIdByName(doctorName);
             int patientId = appointmentDao.getPatientIdByName(patientName);
 
-            // Проверка занятости врача (исключая текущий приём)
-            if (appointmentDao.hasDoctorAppointmentAtTime(doctorId, appointmentDateTime, selected.getAppointmentId())) {
-                showError("Врач уже занят в это время.");
-                return;
-            }
+            // Проверки с исключением текущего ID
+            if (!checkDoctorAvailability(doctorId, newDateTime, selected.getAppointmentId())) return;
+            if (!checkPatientAvailability(patientId, newDateTime, selected.getAppointmentId())) return;
+            if (!checkFourteenDaysInterval(doctorName, patientName, date, selected.getAppointmentId())) return;
 
-            // Проверка занятости пациента (исключая текущий приём)
-            if (appointmentDao.hasPatientAppointmentAtTime(patientId, appointmentDateTime, selected.getAppointmentId())) {
-                showError("У пациента уже есть приём в это время (у другого врача).");
-                return;
-            }
-
-            // Проверка интервала 14 дней (с учётом учёта и исключением текущего приёма)
-            if (appointmentDao.hasAppointmentWithinDays(doctorName, patientName, date, 13, selected.getAppointmentId())) {
-                showError("Нельзя изменить приём так, чтобы интервал с другими приёмами стал меньше 14 дней (если пациент не состоит на учёте).");
-                return;
-            }
-
+            // Обновление объекта и сохранение
             selected.setDoctorName(doctorName);
             selected.setPatientName(patientName);
-            selected.setDateTime(appointmentDateTime);
+            selected.setDateTime(newDateTime);
             selected.setStatus(status);
             selected.setNote(note);
             appointmentDao.updateAppointment(selected);
             loadAppointmentsData();
             clearForm();
         } catch (SQLException e) {
-            e.printStackTrace();
             showError("Ошибка при обновлении приёма: " + e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             showError("Ошибка при обработке данных: " + e.getMessage());
         }
     }
+
+
 
     @FXML
     public void handleDeleteAppointment() {

@@ -1,6 +1,7 @@
 package hospital;
 
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,7 +13,7 @@ public class UserDaoTest {
         // Замените логин/пароль на существующие в вашей БД
         User user = userDao.authenticate("admin", "adminpass");
         assertNotNull(user);
-        assertEquals("ADMIN", user.getRole());
+        assertEquals(Constants.ROLE_ADMIN, user.getRole());
     }
 
     @Test

@@ -1,5 +1,7 @@
 package hospital;
 import hospital.daomodel.User;
+import hospital.util.Constants;
+
 import java.sql.*;
 
 public class UserDao {
@@ -63,13 +65,13 @@ public class UserDao {
         int roleId = user.getRoleId();
 
         switch (user.getRole()) {
-            case "DOCTOR":
+            case Constants.ROLE_DOCTOR:
                 sql = "SELECT FirstName, LastName FROM Doctors WHERE DoctorID = ?";
                 break;
-            case "PATIENT":
+            case Constants.ROLE_PATIENT:
                 sql = "SELECT FirstName, LastName FROM Patients WHERE PatientID = ?";
                 break;
-            case "ADMIN":
+            case Constants.ROLE_ADMIN:
                 sql = "SELECT FirstName, LastName FROM Admins WHERE AdminID = ?";
                 break;
             default:

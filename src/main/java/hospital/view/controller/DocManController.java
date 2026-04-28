@@ -2,6 +2,7 @@ package hospital.view.controller;
 
 import hospital.DoctorDao;
 import hospital.daomodel.Doctor;
+import hospital.service.DoctorSearchService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,6 +25,7 @@ public class DocManController {
 
     private final ObservableList<Doctor> doctorList = FXCollections.observableArrayList();
     private final DoctorDao doctorDao = new DoctorDao();
+    private final DoctorSearchService doctorSearchService = new DoctorSearchService();
 
     @FXML
     public void initialize() {
@@ -53,18 +55,12 @@ public class DocManController {
     }
 
     private void searchDoctors(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            loadDoctorsFromDB();
-            return;
-        }
-
         try {
             doctorList.clear();
-            List<Doctor> foundDoctors = doctorDao.searchDoctors(searchTerm.trim());
-            doctorList.addAll(foundDoctors);
+            doctorList.addAll(doctorSearchService.searchDoctors(searchTerm));
         } catch (SQLException e) {
-            showAlert("Ошибка при поиске врачей: " + e.getMessage());
             e.printStackTrace();
+            showAlert("Ошибка при поиске врачей: " + e.getMessage());
         }
     }
 

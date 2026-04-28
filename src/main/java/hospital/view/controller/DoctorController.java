@@ -7,6 +7,7 @@ import hospital.daomodel.Doctor;
 import hospital.daomodel.Patient;
 import hospital.daomodel.PatientRegistration;
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -157,7 +158,7 @@ public class DoctorController {
         if (currentUser == null) return;
         try {
             doctorData.clear();
-            if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
                 Doctor doctor = doctorDao.getDoctorById(currentUser.getRoleId());
                 if (doctor != null) doctorData.add(doctor);
             } else {
@@ -170,7 +171,7 @@ public class DoctorController {
     }
 
     private void loadPatientsData() {
-        if (currentUser == null || !"DOCTOR".equalsIgnoreCase(currentUser.getRole())) return;
+        if (currentUser == null || !Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) return;
         try {
             patientsData.clear();
             List<Patient> patients = patientDao.getPatientsByDoctorId(currentUser.getRoleId());
@@ -182,7 +183,7 @@ public class DoctorController {
     }
 
     private void loadRegistrationsData() {
-        if (currentUser == null || !"DOCTOR".equalsIgnoreCase(currentUser.getRole())) return;
+        if (currentUser == null || !Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) return;
         try {
             registrationsData.clear();
             registrationsData.addAll(registrationDao.getActiveRegistrationsByDoctor(currentUser.getRoleId()));
@@ -230,7 +231,7 @@ public class DoctorController {
     }
 
     private void searchPatients(String searchTerm) {
-        if (currentUser == null || !"DOCTOR".equalsIgnoreCase(currentUser.getRole())) return;
+        if (currentUser == null || !Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) return;
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             loadPatientsData();
             return;
