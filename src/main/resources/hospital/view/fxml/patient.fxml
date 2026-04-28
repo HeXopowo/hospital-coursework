@@ -39,7 +39,7 @@
                 <VBox spacing="5">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Поиск врачей:"/>
-                        <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача..." prefWidth="250"/>
+                        <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача или специальности..." prefWidth="250"/>
                     </HBox>
                     <TableView fx:id="doctorsTable" VBox.vgrow="ALWAYS">
                         <columns>
@@ -50,6 +50,19 @@
                             <TableColumn fx:id="roomColumn" text="Кабинет" prefWidth="80"/>
                             <TableColumn fx:id="scheduleColumn" text="Расписание" prefWidth="120"/>
                             <TableColumn fx:id="doctorEmailColumn" text="Email" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            <Tab text="Мой учёт" closable="false">
+                <VBox spacing="5">
+                    <Label text="Вы состоите на учёте у следующих врачей: "/>
+                    <TableView fx:id="registrationsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="regDoctorColumn" text="Врач" prefWidth="200"/>
+                            <TableColumn fx:id="regDateColumn" text="Дата постановки" prefWidth="120"/>
+                            <TableColumn fx:id="regDiagnosisColumn" text="Диагноз" prefWidth="250"/>
+                            <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="200"/>
                         </columns>
                     </TableView>
                 </VBox>

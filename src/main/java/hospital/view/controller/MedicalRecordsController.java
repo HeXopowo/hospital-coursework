@@ -5,6 +5,7 @@ import hospital.PatientDao;
 import hospital.daomodel.MedicalRecord;
 import hospital.daomodel.Patient;
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -62,7 +63,7 @@ public class MedicalRecordsController {
 
         personColumn.setCellValueFactory(cellData -> {
             MedicalRecord record = cellData.getValue();
-            if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
                 return new SimpleStringProperty(record.getDoctorName() != null ?
                         record.getDoctorName() : "Врач не найден");
             } else {
@@ -103,13 +104,13 @@ public class MedicalRecordsController {
     }
 
     private void setupRoleSpecificUI() {
-        if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+        if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
             titleLabel.setText("Мои медицинские записи");
             personColumn.setText("Врач");
-            searchField.setPromptText("Поиск по ФИО врача...");
+            searchField.setPromptText("Поиск по ФИО врача или специальности...");
             doctorButtonsPanel.setVisible(false);
             doctorButtonsPanel.setManaged(false);
-        } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
             titleLabel.setText("Медицинские записи пациентов");
             personColumn.setText("Пациент");
             searchField.setPromptText("Поиск по ФИО пациента...");
@@ -130,9 +131,9 @@ public class MedicalRecordsController {
             recordsData.clear();
             List<MedicalRecord> records;
 
-            if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
                 records = medicalRecordDao.getMedicalRecordsByPatient(currentUser.getRoleId());
-            } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+            } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
                 records = medicalRecordDao.getMedicalRecordsByDoctor(currentUser.getRoleId());
             } else {
                 showError("Доступ запрещен. Только пациенты и врачи могут просматривать медицинские записи.");
@@ -168,10 +169,10 @@ public class MedicalRecordsController {
             recordsData.clear();
             List<MedicalRecord> foundRecords;
 
-            if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
                 foundRecords = medicalRecordDao.searchMedicalRecordsByPatient(
                         currentUser.getRoleId(), searchTerm.trim());
-            } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+            } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
                 foundRecords = medicalRecordDao.searchMedicalRecordsByDoctor(
                         currentUser.getRoleId(), searchTerm.trim());
             } else {

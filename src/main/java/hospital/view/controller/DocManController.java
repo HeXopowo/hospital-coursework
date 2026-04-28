@@ -2,6 +2,7 @@ package hospital.view.controller;
 
 import hospital.DoctorDao;
 import hospital.daomodel.Doctor;
+import hospital.service.DoctorSearchService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,6 +25,7 @@ public class DocManController {
 
     private final ObservableList<Doctor> doctorList = FXCollections.observableArrayList();
     private final DoctorDao doctorDao = new DoctorDao();
+    private final DoctorSearchService doctorSearchService = new DoctorSearchService();
 
     @FXML
     public void initialize() {
@@ -53,18 +55,12 @@ public class DocManController {
     }
 
     private void searchDoctors(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            loadDoctorsFromDB();
-            return;
-        }
-
         try {
             doctorList.clear();
-            List<Doctor> foundDoctors = doctorDao.searchDoctors(searchTerm.trim());
-            doctorList.addAll(foundDoctors);
+            doctorList.addAll(doctorSearchService.searchDoctors(searchTerm));
         } catch (SQLException e) {
-            showAlert("Ошибка при поиске врачей: " + e.getMessage());
             e.printStackTrace();
+            showAlert("Ошибка при поиске врачей: " + e.getMessage());
         }
     }
 
@@ -120,13 +116,14 @@ public class DocManController {
             showAlert("Пожалуйста, выберите врача для удаления.");
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Удалить выбранного врача?", ButtonType.YES, ButtonType.NO);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Удалить выбранного врача? Все его данные (приёмы, рецепты, медзаписи, учёт) будут удалены.", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Подтверждение удаления");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    doctorDao.deleteDoctor(selected.getDoctorId());
+                    doctorDao.archiveDoctor(selected.getDoctorId(), "admin");
                     loadDoctorsFromDB();
+                    showAlert("Врач удалён (архивирован).");
                 } catch (SQLException e) {
                     showAlert("Ошибка при удалении врача: " + e.getMessage());
                     e.printStackTrace();
@@ -173,8 +170,13 @@ public class DocManController {
         grid.addRow(5, new Label("Email:"), emailField);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.setResultConverter(button -> {
-            if (button == ButtonType.OK) {
+
+        // Получаем кнопку OK
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+
+        // Перехватываем событие нажатия на OK
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            try {
                 Doctor d = new Doctor();
                 d.setFirstName(firstNameField.getText());
                 d.setLastName(lastNameField.getText());
@@ -182,13 +184,22 @@ public class DocManController {
                 d.setRoomNumber(roomField.getText());
                 d.setSchedule(scheduleField.getText());
                 d.setEmail(emailField.getText());
-                if (doctor != null) {
-                    d.setDoctorId(doctor.getDoctorId());
-                }
-                return d;
+                if (doctor != null) d.setDoctorId(doctor.getDoctorId());
+                dialog.setResult(d); // сохраняем результат
+                // Если всё прошло успешно, диалог закроется автоматически
+            } catch (IllegalArgumentException e) {
+                showAlert("Ошибка ввода: " + e.getMessage());
+                event.consume(); // предотвращает закрытие диалога
+            }
+        });
+
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                return dialog.getResult();
             }
             return null;
         });
+
         return dialog;
     }
 

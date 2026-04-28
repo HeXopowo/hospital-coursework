@@ -1,6 +1,7 @@
 package hospital.view.controller;
 
 import hospital.daomodel.User;
+import hospital.util.Constants;
 import hospital.view.MainApp;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -39,16 +40,16 @@ public class MainController {
         if (currentUser == null) return;
 
         // Создаем вкладки в зависимости от роли
-        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
-            openAdminTab(); // Новая вкладка для администратора
-        } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+        if (Constants.ROLE_ADMIN.equalsIgnoreCase(currentUser.getRole())) {
+            openAdminTab();
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
             openDoctorsTab();
-        } else if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+        } else if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
             openPatientsTab();
         }
 
         // Показывать кнопки только если роль — ADMIN
-        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        boolean isAdmin = Constants.ROLE_ADMIN.equalsIgnoreCase(currentUser.getRole());
         if (addDoctorButton != null) addDoctorButton.setVisible(isAdmin);
         if (addPatientButton != null) addPatientButton.setVisible(isAdmin);
     }
@@ -56,7 +57,7 @@ public class MainController {
     @FXML
     private void handleShowAppointments(ActionEvent event) {
         // Для администратора открываем окно со всеми приемами
-        if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+        if (Constants.ROLE_ADMIN.equalsIgnoreCase(currentUser.getRole())) {
             openAllAppointments();
         } else {
             // Для врачей и пациентов открываем их приемы
