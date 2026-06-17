@@ -127,12 +127,15 @@ public class PatManController {
         alert.setTitle("Подтверждение удаления");
         alert.setHeaderText("Удалить пациента?");
         alert.setContentText("Вы уверены, что хотите удалить пациента " +
-                selected.getFirstName() + " " + selected.getLastName() + "?");
+                selected.getFirstName() + " " + selected.getLastName() +
+                "? Все его данные (приёмы, рецепты, медзаписи, учёт) будут удалены без возможности восстановления.");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    patientDao.deletePatient(selected.getPatientId());
+                    // Используем архивацию
+                    patientDao.archivePatient(selected.getPatientId(), "admin"); // или текущий пользователь
                     loadPatientsFromDB();
+                    showInfo("Пациент удалён (архивирован).");
                 } catch (SQLException e) {
                     showAlert("Ошибка при удалении пациента: " + e.getMessage());
                     e.printStackTrace();
@@ -247,6 +250,14 @@ public class PatManController {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Внимание");
         alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Информация");
+        alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
