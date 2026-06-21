@@ -120,13 +120,14 @@ public class DocManController {
             showAlert("Пожалуйста, выберите врача для удаления.");
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Удалить выбранного врача?", ButtonType.YES, ButtonType.NO);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Удалить выбранного врача? Все его данные (приёмы, рецепты, медзаписи, учёт) будут удалены.", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Подтверждение удаления");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
-                    doctorDao.deleteDoctor(selected.getDoctorId());
+                    doctorDao.archiveDoctor(selected.getDoctorId(), "admin");
                     loadDoctorsFromDB();
+                    showAlert("Врач удалён (архивирован).");
                 } catch (SQLException e) {
                     showAlert("Ошибка при удалении врача: " + e.getMessage());
                     e.printStackTrace();
