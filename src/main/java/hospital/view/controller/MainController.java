@@ -2,6 +2,7 @@ package hospital.view.controller;
 
 import hospital.daomodel.User;
 import hospital.util.Constants;
+import hospital.util.DialogStyler;
 import hospital.view.MainApp;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -71,6 +72,7 @@ public class MainController {
         alert.setTitle("Подтверждение выхода");
         alert.setHeaderText("Вы действительно хотите выйти из учётной записи?");
         alert.setContentText("Нажмите \"OK\" для подтверждения.");
+        DialogStyler.apply(alert);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {

@@ -9,6 +9,10 @@ import hospital.daomodel.PatientRegistration;
 import hospital.daomodel.User;
 import hospital.DatabaseConnection;
 import hospital.service.DoctorSearchService;
+import hospital.util.DialogStyler;
+import hospital.util.SearchDebouncer;
+import hospital.util.TableActions;
+import hospital.util.TableExporter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -114,6 +118,21 @@ public class AdminController {
         setupRegistrationsTable();
         setupArchivedTables();
         setupSearchFilters();
+        // Контекстные меню + двойной клик
+        TableActions.install(doctorsTable,
+                this::handleManageDoctors,
+                this::handleManageDoctors,
+                d -> d.getFirstName() + " " + d.getLastName());
+
+        TableActions.install(patientsTable,
+                this::handleManagePatients,
+                this::handleManagePatients,
+                p -> p.getFirstName() + " " + p.getLastName());
+
+        // Tooltip'ы для полей поиска
+        searchDoctorsField.setTooltip(new Tooltip("Поиск по ФИО или специализации"));
+        searchPatientsField.setTooltip(new Tooltip("Поиск по ФИО пациента"));
+
         loadData();
         loadArchivedData();
     }
@@ -327,11 +346,28 @@ public class AdminController {
     }
 
     @FXML
+    private void handleReports() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/hospital/view/fxml/reports.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Отчёты");
+            stage.setScene(new Scene(root, 900, 600));
+            stage.centerOnScreen();
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Не удалось открыть окно отчётов.");
+        }
+    }
+
+    @FXML
     private void handleCleanupArchive() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Подтверждение очистки");
         confirm.setHeaderText("Удалить записи из архива старше 50 лет?");
         confirm.setContentText("Это действие необратимо. Все архивированные данные, созданные более 50 лет назад, будут безвозвратно удалены.");
+        DialogStyler.apply(confirm);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
@@ -349,6 +385,16 @@ public class AdminController {
         });
     }
 
+    @FXML
+    private void handleExportDoctors() {
+        TableExporter.exportCsv(doctorsTable, "Врачи");
+    }
+
+    @FXML
+    private void handleExportPatients() {
+        TableExporter.exportCsv(patientsTable, "Пациенты");
+    }
+
     // Восстановление из архива
     private void handleRestorePatient(Patient patient) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -356,6 +402,7 @@ public class AdminController {
         confirm.setHeaderText("Восстановить пациента?");
         confirm.setContentText("Пациент " + patient.getFirstName() + " " + patient.getLastName() +
                 " будет восстановлен из архива. Его связанные данные (приёмы, рецепты, медицинские записи, учёт) не восстановятся.");
+        DialogStyler.apply(confirm);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
@@ -377,6 +424,7 @@ public class AdminController {
         confirm.setHeaderText("Восстановить врача?");
         confirm.setContentText("Врач " + doctor.getFirstName() + " " + doctor.getLastName() +
                 " будет восстановлен из архива. Его связанные данные (приёмы, рецепты, медицинские записи, учёт) не восстановятся.");
+        DialogStyler.apply(confirm);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
@@ -394,8 +442,13 @@ public class AdminController {
 
     // Поиск
     private void setupSearchFilters() {
-        searchDoctorsField.textProperty().addListener((observable, oldValue, newValue) -> searchDoctors(newValue));
-        searchPatientsField.textProperty().addListener((observable, oldValue, newValue) -> searchPatients(newValue));
+        SearchDebouncer debounceDoctors   = new SearchDebouncer(this::searchDoctors);
+        SearchDebouncer debouncePatients  = new SearchDebouncer(this::searchPatients);
+
+        searchDoctorsField.textProperty().addListener(
+                (obs, o, v) -> debounceDoctors.trigger(v));
+        searchPatientsField.textProperty().addListener(
+                (obs, o, v) -> debouncePatients.trigger(v));
     }
 
     private void searchDoctors(String searchTerm) {
@@ -428,6 +481,7 @@ public class AdminController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
@@ -436,6 +490,7 @@ public class AdminController {
         alert.setTitle("Информация");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 }

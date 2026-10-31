@@ -5,6 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx/8.0.171"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="hospital.view.controller.AdminController"
+      stylesheets="@/hospital/view/css/styles.css"
       spacing="5" prefWidth="1000" prefHeight="600">
 
     <MenuBar>
@@ -12,6 +13,7 @@
             <MenuItem text="Приёмы" onAction="#handleAllAppointments"/>
             <MenuItem text="Управление врачами" onAction="#handleManageDoctors"/>
             <MenuItem text="Управление пациентами" onAction="#handleManagePatients"/>
+            <MenuItem text="Отчёты" onAction="#handleReports"/>
         </Menu>
     </MenuBar>
 
@@ -24,6 +26,7 @@
                         <Label text="Поиск врачей:"/>
                         <TextField fx:id="searchDoctorsField" promptText="Поиск по ФИО врача или специальности..." prefWidth="250"/>
                         <Button text="Обновить" onAction="#handleRefreshDoctors"/>
+                        <Button text="Экспорт в CSV" onAction="#handleExportDoctors" styleClass="secondary"/>
                     </HBox>
                     <TableView fx:id="doctorsTable" VBox.vgrow="ALWAYS">
                         <columns>
@@ -46,6 +49,7 @@
                         <Label text="Поиск пациентов:"/>
                         <TextField fx:id="searchPatientsField" promptText="Поиск по ФИО пациента..." prefWidth="250"/>
                         <Button text="Обновить" onAction="#handleRefreshPatients"/>
+                        <Button text="Экспорт в CSV" onAction="#handleExportPatients" styleClass="secondary"/>
                     </HBox>
                     <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS">
                         <columns>

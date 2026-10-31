@@ -5,6 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx/8"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="hospital.view.controller.AppointmentsController"
+      stylesheets="@/hospital/view/css/styles.css"
       spacing="10"
       prefWidth="900"
       prefHeight="700">

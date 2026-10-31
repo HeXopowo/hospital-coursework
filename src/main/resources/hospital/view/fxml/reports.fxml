@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="hospital.view.controller.ReportController"
+      stylesheets="@/hospital/view/css/styles.css"
+      spacing="10" prefWidth="1000" prefHeight="600">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <Label text="Генерация отчётов" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Тип отчёта:"/>
+        <ComboBox fx:id="reportTypeComboBox" prefWidth="250"/>
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="С:"/>
+        <DatePicker fx:id="dateFromPicker" prefWidth="150"/>
+        <Label text="По:"/>
+        <DatePicker fx:id="dateToPicker" prefWidth="150"/>
+        <Button text="Сформировать" onAction="#handleGenerateReport"/>
+        <Button text="Экспорт в CSV" onAction="#handleExportCsv"/>
+    </HBox>
+
+    <Label fx:id="summaryLabel" style="-fx-font-weight: bold; -fx-text-fill: #2a6fb3;"/>
+
+    <TableView fx:id="reportTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="categoryColumn"   text="Категория"     prefWidth="200"/>
+            <TableColumn fx:id="countColumn"      text="Количество"    prefWidth="100"/>
+            <TableColumn fx:id="additionalColumn" text="Дополнительно" prefWidth="200"/>
+            <TableColumn fx:id="extra1Column"     text=""              prefWidth="180"/>
+            <TableColumn fx:id="extra2Column"     text=""              prefWidth="120"/>
+        </columns>
+    </TableView>
+</VBox>

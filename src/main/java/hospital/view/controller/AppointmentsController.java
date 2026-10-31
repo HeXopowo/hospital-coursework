@@ -4,6 +4,7 @@ import hospital.AppointmentDao;
 import hospital.daomodel.Appointment;
 import hospital.daomodel.User;
 import hospital.util.Constants;
+import hospital.util.DialogStyler;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -347,6 +348,7 @@ public class AppointmentsController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 

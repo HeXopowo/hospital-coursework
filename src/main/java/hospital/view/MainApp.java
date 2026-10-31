@@ -1,6 +1,6 @@
 package hospital.view;
 
-import hospital.api.RestApiServer;
+// import hospital.api.RestApiServer;
 import hospital.daomodel.User;
 import hospital.view.controller.LoginController;
 import hospital.view.controller.MainController;
@@ -18,7 +18,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         showLogin();
-        RestApiServer.start();
+        // RestApiServer.start();
     }
 
     private void showLogin() throws Exception {
@@ -28,6 +28,8 @@ public class MainApp extends Application {
         controller.setMainApp(this);
 
         Scene scene = new Scene(root);
+        scene.getStylesheets().add(
+                getClass().getResource("/hospital/view/css/styles.css").toExternalForm());
         primaryStage.setTitle("Авторизация");
         primaryStage.setScene(scene);
 
@@ -56,8 +58,8 @@ public class MainApp extends Application {
         controller.setMainApp(this);
 
         Scene scene = new Scene(root);
-        // Устанавливаем цвет фона сцены, чтобы избежать черных областей
-        scene.setFill(Color.WHITE);
+        scene.getStylesheets().add(
+                getClass().getResource("/hospital/view/css/styles.css").toExternalForm());
 
         mainStage.setTitle("Hospital System - " + loggedUser.getRole());
         mainStage.setScene(scene);

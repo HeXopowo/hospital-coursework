@@ -1,4 +1,4 @@
-package hospital.api;
+/* package hospital.api;
 
 import hospital.DoctorDao;
 import io.javalin.Javalin;
@@ -17,4 +17,4 @@ public class DoctorApiController {
             ctx.json(doctorDao.searchDoctors(term.trim()));
         });
     }
-}
+} */

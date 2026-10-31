@@ -8,6 +8,8 @@ import hospital.daomodel.Patient;
 import hospital.daomodel.PatientRegistration;
 import hospital.daomodel.User;
 import hospital.util.Constants;
+import hospital.util.DialogStyler;
+import hospital.util.SearchDebouncer;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -106,9 +108,9 @@ public class DoctorController {
         patientsTable.setItems(patientsData);
 
         // Поиск пациентов
-        searchPatientsField.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchPatients(newValue);
-        });
+        SearchDebouncer debounce = new SearchDebouncer(this::searchPatients);
+        searchPatientsField.textProperty().addListener(
+                (obs, o, v) -> debounce.trigger(v));
 
         // Таблица учёта
         regPatientColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPatientName()));
@@ -152,6 +154,17 @@ public class DoctorController {
         });
 
         registrationsTable.setItems(registrationsData);
+
+        // Двойной клик по строке - редактировать запись учёта пациента
+        registrationsTable.setRowFactory(tv -> {
+            TableRow<PatientRegistration> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    handleEditRegistration(row.getItem());
+                }
+            });
+            return row;
+        });
     }
 
     private void loadDoctorData() {
@@ -307,12 +320,10 @@ public class DoctorController {
         if (existing == null) {
             patientCombo.setItems(patientsData);
             patientCombo.setConverter(new javafx.util.StringConverter<Patient>() {
-                @Override
-                public String toString(Patient p) {
+                @Override public String toString(Patient p) {
                     return p == null ? "" : p.getFirstName() + " " + p.getLastName();
                 }
-                @Override
-                public Patient fromString(String s) { return null; }
+                @Override public Patient fromString(String s) { return null; }
             });
             patientCombo.setPromptText("Выберите пациента");
         } else {
@@ -324,34 +335,59 @@ public class DoctorController {
             patientCombo.setDisable(true);
         }
 
-        DatePicker regDatePicker = new DatePicker(existing != null ? existing.getRegistrationDate() : LocalDate.now());
+        DatePicker regDatePicker = new DatePicker(
+                existing != null ? existing.getRegistrationDate() : LocalDate.now());
+
         TextField diagnosisField = new TextField(existing != null ? existing.getDiagnosis() : "");
         diagnosisField.setPromptText("Диагноз (обязательно)");
 
         TextArea notesArea = new TextArea(existing != null ? existing.getNotes() : "");
         notesArea.setPromptText("Примечания");
-        notesArea.setPrefRowCount(4);
+        notesArea.setPrefRowCount(3);
 
         GridPane grid = new GridPane();
         grid.setVgap(10);
-        grid.setHgap(10);
+        grid.setHgap(12);
         grid.setPadding(new javafx.geometry.Insets(20));
-        grid.addRow(0, new Label("Пациент:"), patientCombo);
-        grid.addRow(1, new Label("Дата постановки:"), regDatePicker);
-        grid.addRow(2, new Label("Диагноз:"), diagnosisField);
-        grid.addRow(3, new Label("Примечания:"), notesArea);
 
-        GridPane.setHgrow(patientCombo, Priority.ALWAYS);
-        GridPane.setHgrow(regDatePicker, Priority.ALWAYS);
+        javafx.scene.layout.ColumnConstraints labelCol = new javafx.scene.layout.ColumnConstraints();
+        labelCol.setMinWidth(150);
+        labelCol.setPrefWidth(150);
+        labelCol.setHgrow(Priority.NEVER);
+
+        javafx.scene.layout.ColumnConstraints fieldCol = new javafx.scene.layout.ColumnConstraints();
+        fieldCol.setMinWidth(200);
+        fieldCol.setHgrow(Priority.ALWAYS);
+
+        grid.getColumnConstraints().addAll(labelCol, fieldCol);
+
+        grid.addRow(0, new Label("Пациент:"),         patientCombo);
+        grid.addRow(1, new Label("Дата постановки:"), regDatePicker);
+        grid.addRow(2, new Label("Диагноз:"),         diagnosisField);
+        grid.addRow(3, new Label("Примечания:"),      notesArea);
+
+        for (javafx.scene.Node node : grid.getChildren()) {
+            if (node instanceof Label lbl) {
+                lbl.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            }
+        }
+
+        GridPane.setHgrow(patientCombo,   Priority.ALWAYS);
+        GridPane.setHgrow(regDatePicker,  Priority.ALWAYS);
         GridPane.setHgrow(diagnosisField, Priority.ALWAYS);
-        GridPane.setHgrow(notesArea, Priority.ALWAYS);
+        GridPane.setHgrow(notesArea,      Priority.ALWAYS);
         patientCombo.setMaxWidth(Double.MAX_VALUE);
         regDatePicker.setMaxWidth(Double.MAX_VALUE);
         diagnosisField.setMaxWidth(Double.MAX_VALUE);
         notesArea.setMaxWidth(Double.MAX_VALUE);
 
         dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().setPrefSize(500, 400);
+        DialogStyler.apply(dialog);
+
+        dialog.getDialogPane().setMinWidth(560);
+        dialog.getDialogPane().setMinHeight(440);
+        dialog.getDialogPane().setPrefWidth(560);
+        dialog.getDialogPane().setPrefHeight(480);
 
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
@@ -411,17 +447,20 @@ public class DoctorController {
     // Вспомогательные методы для сообщений
     private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
     private void showAlert(String header, String msg) {
         Alert a = new Alert(Alert.AlertType.WARNING, msg);
         a.setHeaderText(header);
+        DialogStyler.apply(a);
         a.showAndWait();
     }
 
     private void showInfo(String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, msg);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 }

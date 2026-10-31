@@ -1,4 +1,4 @@
-package hospital.api;
+/* package hospital.api;
 
 import hospital.AppointmentDao;
 import io.javalin.Javalin;
@@ -33,4 +33,4 @@ public class AppointmentApiController {
             }
         });
     }
-}
+} */

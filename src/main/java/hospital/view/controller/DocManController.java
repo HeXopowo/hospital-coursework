@@ -3,6 +3,10 @@ package hospital.view.controller;
 import hospital.DoctorDao;
 import hospital.daomodel.Doctor;
 import hospital.service.DoctorSearchService;
+import hospital.util.DialogStyler;
+import hospital.util.FieldValidator;
+import hospital.util.SearchDebouncer;
+import hospital.util.TableExporter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -46,12 +50,28 @@ public class DocManController {
 
         // Добавлен обработчик поиска
         setupSearchFilter();
+
+        // Двойной клик по строке - редактировать врача
+        doctorTable.setRowFactory(tv -> {
+            TableRow<Doctor> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    handleEditDoctor();
+                }
+            });
+            return row;
+        });
+    }
+
+    @FXML
+    private void handleExportDoctors() {
+        TableExporter.exportCsv(doctorTable, "Врачи");
     }
 
     private void setupSearchFilter() {
-        searchDoctorsField.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchDoctors(newValue);
-        });
+        SearchDebouncer debounce = new SearchDebouncer(this::searchDoctors);
+        searchDoctorsField.textProperty().addListener(
+                (obs, o, v) -> debounce.trigger(v));
     }
 
     private void searchDoctors(String searchTerm) {
@@ -118,6 +138,7 @@ public class DocManController {
         }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Удалить выбранного врача? Все его данные (приёмы, рецепты, медзаписи, учёт) будут удалены.", ButtonType.YES, ButtonType.NO);
         confirm.setTitle("Подтверждение удаления");
+        DialogStyler.apply(confirm);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 try {
@@ -142,6 +163,10 @@ public class DocManController {
         TextField roomField = new TextField();
         TextField scheduleField = new TextField();
         TextField emailField = new TextField();
+
+        FieldValidator.attach(emailField,
+                "^[A-Za-z0-9+_.-]+@(.+)$",
+                "Формат: name@domain.ru");
 
         firstNameField.setPromptText("Имя");
         lastNameField.setPromptText("Фамилия");
@@ -170,6 +195,7 @@ public class DocManController {
         grid.addRow(5, new Label("Email:"), emailField);
 
         dialog.getDialogPane().setContent(grid);
+        DialogStyler.apply(dialog);
 
         // Получаем кнопку OK
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
@@ -208,6 +234,7 @@ public class DocManController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 }

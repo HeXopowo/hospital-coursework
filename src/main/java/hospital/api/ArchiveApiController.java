@@ -1,4 +1,4 @@
-package hospital.api;
+/* package hospital.api;
 
 import hospital.DatabaseConnection;
 import io.javalin.Javalin;
@@ -19,4 +19,4 @@ public class ArchiveApiController {
             }
         });
     }
-}
+} */

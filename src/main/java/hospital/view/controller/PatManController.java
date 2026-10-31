@@ -2,6 +2,10 @@ package hospital.view.controller;
 
 import hospital.PatientDao;
 import hospital.daomodel.Patient;
+import hospital.util.DialogStyler;
+import hospital.util.FieldValidator;
+import hospital.util.SearchDebouncer;
+import hospital.util.TableExporter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -47,12 +51,28 @@ public class PatManController {
 
         // Добавлен обработчик поиска
         setupSearchFilter();
+
+        // Двойной клик по строке - редактировать пациента
+        patientTable.setRowFactory(tv -> {
+            TableRow<Patient> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    handleEditPatient();
+                }
+            });
+            return row;
+        });
+    }
+
+    @FXML
+    private void handleExportPatients() {
+        TableExporter.exportCsv(patientTable, "Пациенты");
     }
 
     private void setupSearchFilter() {
-        searchPatientsField.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchPatients(newValue);
-        });
+        SearchDebouncer debounce = new SearchDebouncer(this::searchPatients);   // ✅
+        searchPatientsField.textProperty().addListener(                         // ✅
+                (obs, o, v) -> debounce.trigger(v));
     }
 
     private void searchPatients(String searchTerm) {
@@ -147,6 +167,7 @@ public class PatManController {
     private Dialog<Patient> createPatientDialog(Patient patient) {
         Dialog<Patient> dialog = new Dialog<>();
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        DialogStyler.apply(dialog);
 
         TextField firstNameField = new TextField();
         TextField lastNameField = new TextField();
@@ -157,6 +178,20 @@ public class PatManController {
         TextField policyField = new TextField();
         TextField districtField = new TextField();
         TextField addressField = new TextField();
+
+        // Валидация в реальном времени
+        FieldValidator.attach(emailField,
+                "^[A-Za-z0-9+_.-]+@(.+)$",
+                "Формат: name@domain.ru");
+        FieldValidator.attach(snilsField,
+                "^\\d{3}-\\d{3}-\\d{3} \\d{2}$",
+                "Формат: XXX-XXX-XXX XX");
+        FieldValidator.attach(policyField,
+                "^\\d{16}$",
+                "Ровно 16 цифр");
+        FieldValidator.attach(phoneField,
+                "^\\+?[0-9\\-\\s()]{7,20}$",
+                "+7XXXXXXXXXX, допустимы +, -, пробел");
 
         districtField.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
@@ -199,6 +234,7 @@ public class PatManController {
         grid.addRow(8, new Label("Адрес:"), addressField);
 
         dialog.getDialogPane().setContent(grid);
+        DialogStyler.apply(dialog);
 
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
@@ -246,6 +282,7 @@ public class PatManController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
@@ -254,6 +291,7 @@ public class PatManController {
         alert.setTitle("Внимание");
         alert.setHeaderText(header);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
@@ -262,6 +300,7 @@ public class PatManController {
         alert.setTitle("Информация");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 }

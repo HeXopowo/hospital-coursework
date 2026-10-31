@@ -4,6 +4,7 @@ import hospital.PrescriptionDao;
 import hospital.daomodel.Prescription;
 import hospital.daomodel.User;
 import hospital.util.Constants;
+import hospital.util.DialogStyler;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -78,6 +79,20 @@ public class PrescriptionController {
         searchPrescriptionsField.textProperty().addListener((observable, oldValue, newValue) -> {
             searchPrescriptions(newValue);
         });
+
+        // Двойной клик по строке - редактировать рецепт (только для врача)
+        prescriptionTable.setRowFactory(tv -> {
+            TableRow<Prescription> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    if (currentUser != null
+                            && Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
+                        handleEditPrescription();
+                    }
+                }
+            });
+            return row;
+        });
     }
     @FXML
     private void handleAddPrescription() {
@@ -129,11 +144,13 @@ public class PrescriptionController {
         dialog.setTitle("Изменить рецепт");
         dialog.setHeaderText("Изменить лекарство и дозировку");
         dialog.setContentText("Новое название лекарства:");
+        DialogStyler.apply(dialog);
         dialog.showAndWait().ifPresent(newMedicine -> {
             TextInputDialog dosageDialog = new TextInputDialog(selected.getDosage());
             dosageDialog.setTitle("Изменить дозировку");
             dosageDialog.setHeaderText("Изменить дозировку");
             dosageDialog.setContentText("Новая дозировка:");
+            DialogStyler.apply(dosageDialog);
             dosageDialog.showAndWait().ifPresent(newDosage -> {
                 PrescriptionDao dao = new PrescriptionDao();
                 try {
@@ -151,6 +168,7 @@ public class PrescriptionController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 

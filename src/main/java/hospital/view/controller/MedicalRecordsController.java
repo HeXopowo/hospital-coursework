@@ -6,6 +6,7 @@ import hospital.daomodel.MedicalRecord;
 import hospital.daomodel.Patient;
 import hospital.daomodel.User;
 import hospital.util.Constants;
+import hospital.util.DialogStyler;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +50,20 @@ public class MedicalRecordsController {
     private void initialize() {
         setupTableColumns();
         setupSearchFilter();
+
+        // Двойной клик по строке - редактировать медзапись (только для врача)
+        recordsTable.setRowFactory(tv -> {
+            TableRow<MedicalRecord> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    if (currentUser != null
+                            && Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
+                        handleEditRecord();
+                    }
+                }
+            });
+            return row;
+        });
     }
 
     private void setupTableColumns() {
@@ -359,6 +374,7 @@ public class MedicalRecordsController {
         // Делаем диалог больше для удобства
         dialog.getDialogPane().setPrefSize(600, 500);
         dialog.getDialogPane().setContent(grid);
+        DialogStyler.apply(dialog);
 
         // Валидация
         if (record == null) {
@@ -413,6 +429,7 @@ public class MedicalRecordsController {
         alert.setTitle("Внимание");
         alert.setHeaderText(header);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
@@ -421,6 +438,7 @@ public class MedicalRecordsController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 
@@ -429,6 +447,7 @@ public class MedicalRecordsController {
         alert.setTitle("Успех");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 }

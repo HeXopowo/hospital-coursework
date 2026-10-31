@@ -1,0 +1,208 @@
+/* Общие */
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f4f6f8;
+}
+
+.label {
+    -fx-text-fill: #2c3e50;
+}
+
+.label.title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a5490;
+}
+
+.label.summary {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2a6fb3;
+    -fx-padding: 4 0 4 0;
+}
+
+/* Кнопки */
+.button {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+.button:hover   { -fx-background-color: #3498db; }
+.button:pressed { -fx-background-color: #1a5490; }
+
+.button.secondary        { -fx-background-color: #95a5a6; }
+.button.secondary:hover  { -fx-background-color: #7f8c8d; }
+
+.button.danger           { -fx-background-color: #e74c3c; }
+.button.danger:hover     { -fx-background-color: #c0392b; }
+
+/* Поля ввода */
+.text-field, .password-field, .text-area, .combo-box, .date-picker {
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1;
+}
+.text-field:focused, .password-field:focused,
+.text-area:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: #2980b9;
+}
+
+.field-error {
+    -fx-border-color: #e74c3c;
+    -fx-border-width: 2;
+    -fx-background-color: #fdecea;
+}
+
+/* Таблицы */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #dcdde1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-table-cell-border-color: transparent;
+}
+
+/* Заголовок */
+.table-view .column-header,
+.table-view .column-header-background,
+.table-view .filler {
+    -fx-background-color: #ecf0f1;
+}
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 6 0 6 0;
+}
+
+/* Строки: каждая - с явной нижней границей */
+.table-view .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cell-size: 28px;
+}
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f7f9fb;
+}
+.table-view .table-row-cell:hover {
+    -fx-background-color: #e8f4fd;
+}
+.table-view .table-row-cell:selected {
+    -fx-background-color: #bde0f8;
+    -fx-border-color: transparent transparent #2980b9 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .table-row-cell:selected .text {
+    -fx-fill: #1a1a1a;
+}
+
+/* MenuBar */
+.menu-bar {
+    -fx-background-color: #2c3e50;
+}
+
+/* Только верхние кнопки-меню получают белый текст */
+.menu-bar > .container > .menu-button > .label {
+    -fx-text-fill: white;
+}
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: #3498db;
+}
+.menu-bar > .container > .menu-button:hover > .label,
+.menu-bar > .container > .menu-button:showing > .label {
+    -fx-text-fill: white;
+}
+
+/* Выпадающие пункты меню - на белом фоне с тёмным текстом */
+.menu-bar .context-menu {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 3);
+}
+.menu-bar .menu-item > .label {
+    -fx-text-fill: #2c3e50;
+}
+.menu-bar .menu-item:focused {
+    -fx-background-color: #2980b9;
+}
+.menu-bar .menu-item:focused > .label {
+    -fx-text-fill: white;
+}
+
+/* TabPane */
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #ecf0f1;
+    -fx-padding: 6 18 6 18;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-label {
+    -fx-text-fill: #2c3e50;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #2980b9;
+    -fx-background-insets: 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* Убираем голубую рамку фокуса у вкладки */
+.tab-pane > .tab-header-area > .headers-region > .tab .focus-indicator {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* Разделитель */
+.separator .line { -fx-border-color: #dcdde1; }
+
+/* Отступ содержимого внутри всех вкладок TabPane */
+.tab-pane > .tab-content-area > * {
+    -fx-padding: 12;
+}
+
+/* Диалоги (Dialog, Alert, TextInputDialog) */
+.dialog-pane {
+    -fx-background-color: #f4f6f8;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: #ecf0f1;
+    -fx-padding: 12 16 12 16;
+}
+.dialog-pane > .header-panel .label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a5490;
+}
+.dialog-pane > .content.label {
+    -fx-padding: 12 16 12 16;
+}
+.dialog-pane > .button-bar {
+    -fx-padding: 8 16 12 16;
+}
+.dialog-pane .grid-pane {
+    -fx-padding: 12;
+    -fx-hgap: 12;
+    -fx-vgap: 10;
+}
+.dialog-pane .label {
+    -fx-text-fill: #2c3e50;
+}
+
+/* Tooltip */
+.tooltip {
+    -fx-background-color: #2c3e50;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);
+}
