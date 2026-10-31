@@ -5,6 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx/8.0.171"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="hospital.view.controller.DoctorController"
+      stylesheets="@/hospital/view/css/styles.css"
       spacing="5" prefWidth="1000" prefHeight="600">
 
     <MenuBar>
@@ -48,6 +49,26 @@
                             <TableColumn fx:id="policyColumn" text="Полис ОМС" prefWidth="120"/>
                             <TableColumn fx:id="districtColumn" text="Участок" prefWidth="80"/>
                             <TableColumn fx:id="addressColumn" text="Адрес" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            <!-- Новая вкладка "Учёт пациентов" -->
+            <Tab text="Учёт пациентов" closable="false">
+                <VBox spacing="10" prefHeight="400">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Пациенты на учёте: "/>
+                        <Button text="Поставить на учёт" onAction="#handleAddRegistration"/>
+                        <Button text="Редактировать" onAction="#handleEditRegistration"/>
+                    </HBox>
+                    <TableView fx:id="registrationsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="regPatientColumn" text="Пациент" prefWidth="150"/>
+                            <TableColumn fx:id="regDateColumn" text="Дата постановки" prefWidth="120"/>
+                            <TableColumn fx:id="regDiagnosisColumn" text="Диагноз" prefWidth="200"/>
+                            <TableColumn fx:id="regNotesColumn" text="Примечания" prefWidth="150"/>
+                            <TableColumn fx:id="regEditColumn" text="Ред." prefWidth="60"/>
+                            <TableColumn fx:id="regActionColumn" text="Снять" prefWidth="80"/>
                         </columns>
                     </TableView>
                 </VBox>

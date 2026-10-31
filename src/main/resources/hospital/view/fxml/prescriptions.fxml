@@ -5,6 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx/8.0.171"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="hospital.view.controller.PrescriptionController"
+      stylesheets="@/hospital/view/css/styles.css"
       spacing="10">
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>

@@ -1,11 +1,16 @@
 package hospital.view.controller;
+
 import hospital.daomodel.User;
 import hospital.UserDao;
+import hospital.util.DialogStyler;
 import hospital.view.MainApp;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+
 public class LoginController {
     private MainApp mainApp;
     @FXML
@@ -17,7 +22,27 @@ public class LoginController {
         this.mainApp = mainApp;
     }
     @FXML
-    private void handleLogin() {
+    private void initialize() {
+        // Подсказки
+        usernameField.setTooltip(new Tooltip("Введите логин, выданный администратором"));
+        passwordField.setTooltip(new Tooltip("Введите пароль"));
+
+        // Enter — вход
+        usernameField.setOnAction(e -> handleLogin());
+        passwordField.setOnAction(e -> handleLogin());
+
+        // Esc — очистка полей; фокус на первое поле при открытии
+        Platform.runLater(() -> {
+            if (usernameField.getScene() != null) {
+                usernameField.getScene().setOnKeyPressed(e -> {
+                    if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) handleCancel();
+                });
+            }
+            usernameField.requestFocus();
+        });
+    }
+    @FXML
+    public void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
         User user = null;
@@ -44,10 +69,11 @@ public class LoginController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(msg);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
     @FXML
-    private void handleCancel() {
+    public void handleCancel() {
         usernameField.clear();
         passwordField.clear();
     }

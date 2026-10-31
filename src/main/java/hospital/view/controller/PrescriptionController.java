@@ -1,7 +1,10 @@
 package hospital.view.controller;
+
 import hospital.PrescriptionDao;
 import hospital.daomodel.Prescription;
 import hospital.daomodel.User;
+import hospital.util.Constants;
+import hospital.util.DialogStyler;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,7 +39,7 @@ public class PrescriptionController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if ("DOCTOR".equalsIgnoreCase(user.getRole())) {
+        if (Constants.ROLE_DOCTOR.equalsIgnoreCase(user.getRole())) {
             personColumn.setText("Пациент");
             doctorForm.setVisible(true);
             doctorForm.setManaged(true);
@@ -52,7 +55,7 @@ public class PrescriptionController {
             doctorForm.setManaged(false);
         }
         // Показываем кнопки только для DOCTOR или ADMIN
-        boolean canEdit = "DOCTOR".equalsIgnoreCase(user.getRole()) || "ADMIN".equalsIgnoreCase(user.getRole());
+        boolean canEdit = Constants.ROLE_DOCTOR.equalsIgnoreCase(user.getRole()) || Constants.ROLE_ADMIN.equalsIgnoreCase(user.getRole());
         if (editButton != null) {
             editButton.setVisible(canEdit);
             editButton.setManaged(canEdit);
@@ -67,7 +70,7 @@ public class PrescriptionController {
         personColumn.setCellValueFactory(cellData -> {
             Prescription p = cellData.getValue();
             if (currentUser == null) return new SimpleStringProperty("");
-            return "DOCTOR".equalsIgnoreCase(currentUser.getRole())
+            return Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())
                     ? new SimpleStringProperty(p.getPatientName())
                     : new SimpleStringProperty(p.getDoctorName());
         });
@@ -75,6 +78,20 @@ public class PrescriptionController {
         dosageColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDosage()));
         searchPrescriptionsField.textProperty().addListener((observable, oldValue, newValue) -> {
             searchPrescriptions(newValue);
+        });
+
+        // Двойной клик по строке - редактировать рецепт (только для врача)
+        prescriptionTable.setRowFactory(tv -> {
+            TableRow<Prescription> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    if (currentUser != null
+                            && Constants.ROLE_DOCTOR.equalsIgnoreCase(currentUser.getRole())) {
+                        handleEditPrescription();
+                    }
+                }
+            });
+            return row;
         });
     }
     @FXML
@@ -127,11 +144,13 @@ public class PrescriptionController {
         dialog.setTitle("Изменить рецепт");
         dialog.setHeaderText("Изменить лекарство и дозировку");
         dialog.setContentText("Новое название лекарства:");
+        DialogStyler.apply(dialog);
         dialog.showAndWait().ifPresent(newMedicine -> {
             TextInputDialog dosageDialog = new TextInputDialog(selected.getDosage());
             dosageDialog.setTitle("Изменить дозировку");
             dosageDialog.setHeaderText("Изменить дозировку");
             dosageDialog.setContentText("Новая дозировка:");
+            DialogStyler.apply(dosageDialog);
             dosageDialog.showAndWait().ifPresent(newDosage -> {
                 PrescriptionDao dao = new PrescriptionDao();
                 try {
@@ -149,6 +168,7 @@ public class PrescriptionController {
         alert.setTitle("Ошибка");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogStyler.apply(alert);
         alert.showAndWait();
     }
 

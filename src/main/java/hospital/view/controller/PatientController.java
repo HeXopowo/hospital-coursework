@@ -5,6 +5,9 @@ import hospital.PatientDao;
 import hospital.daomodel.Doctor;
 import hospital.daomodel.Patient;
 import hospital.daomodel.User;
+import hospital.service.DoctorSearchService;
+import hospital.util.Constants;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,6 +21,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import hospital.daomodel.PatientRegistration;
+import hospital.PatientRegistrationDao;
 
 public class PatientController {
     @FXML private TabPane patientTabPane;
@@ -46,17 +51,29 @@ public class PatientController {
     @FXML private TableColumn<Doctor, String> doctorEmailColumn;
     @FXML private TextField searchDoctorsField;
 
+    // Таблица учёта пациента
+    @FXML private TableView<PatientRegistration> registrationsTable;
+    @FXML private TableColumn<PatientRegistration, String> regDoctorColumn;
+    @FXML private TableColumn<PatientRegistration, LocalDate> regDateColumn;
+    @FXML private TableColumn<PatientRegistration, String> regDiagnosisColumn;
+    @FXML private TableColumn<PatientRegistration, String> regNotesColumn;
+
+    private ObservableList<PatientRegistration> registrationsData = FXCollections.observableArrayList();
+    private PatientRegistrationDao registrationDao = new PatientRegistrationDao();
+
     private ObservableList<Patient> patientData = FXCollections.observableArrayList();
     private ObservableList<Doctor> doctorsData = FXCollections.observableArrayList();
     private User currentUser;
     private PatientDao patientDao = new PatientDao();
     private DoctorDao doctorDao = new DoctorDao();
+    private final DoctorSearchService doctorSearchService = new DoctorSearchService();
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
         System.out.println("PatientController: currentUser set to " + user.getUsername());
         loadPatientData();
         loadDoctorsData();
+        loadRegistrationsData();
     }
 
     @FXML
@@ -84,6 +101,13 @@ public class PatientController {
         doctorEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         doctorsTable.setItems(doctorsData);
         setupSearchFilters();
+
+        // Таблица учёта
+        regDoctorColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDoctorName()));
+        regDateColumn.setCellValueFactory(new PropertyValueFactory<>("registrationDate"));
+        regDiagnosisColumn.setCellValueFactory(new PropertyValueFactory<>("diagnosis"));
+        regNotesColumn.setCellValueFactory(new PropertyValueFactory<>("notes"));
+        registrationsTable.setItems(registrationsData);
     }
 
     private void loadPatientData() {
@@ -93,7 +117,7 @@ public class PatientController {
         }
         try {
             patientData.clear();
-            if ("PATIENT".equalsIgnoreCase(currentUser.getRole())) {
+            if (Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) {
                 Patient patient = patientDao.getPatientById(currentUser.getRoleId());
                 if (patient != null) {
                     patientData.add(patient);
@@ -169,15 +193,9 @@ public class PatientController {
     }
 
     private void searchDoctors(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            loadDoctorsData(); // Показать всех врачей
-            return;
-        }
-
         try {
             doctorsData.clear();
-            List<Doctor> foundDoctors = doctorDao.searchDoctors(searchTerm.trim());
-            doctorsData.addAll(foundDoctors);
+            doctorsData.addAll(doctorSearchService.searchDoctors(searchTerm));
         } catch (SQLException e) {
             e.printStackTrace();
             showError("Ошибка при поиске врачей.");
@@ -200,6 +218,17 @@ public class PatientController {
         } catch (IOException e) {
             e.printStackTrace();
             showError("Не удалось открыть окно медицинских записей.");
+        }
+    }
+
+    private void loadRegistrationsData() {
+        if (currentUser == null || !Constants.ROLE_PATIENT.equalsIgnoreCase(currentUser.getRole())) return;
+        try {
+            registrationsData.clear();
+            registrationsData.addAll(registrationDao.getActiveRegistrationsByPatient(currentUser.getRoleId()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showError("Ошибка загрузки учётных записей.");
         }
     }
 }

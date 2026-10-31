@@ -6,6 +6,7 @@
 <VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx/11.0.2"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="hospital.view.controller.LoginController"
+      stylesheets="@/hospital/view/css/styles.css"
       prefWidth="400" prefHeight="300"
       maxWidth="400" maxHeight="300">
     <padding>

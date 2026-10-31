@@ -5,6 +5,7 @@
 <VBox xmlns="http://javafx.com/javafx/8"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="hospital.view.controller.PatManController"
+      stylesheets="@/hospital/view/css/styles.css"
       spacing="10">
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
@@ -36,5 +37,6 @@
         <Button text="Добавить пациента" onAction="#handleAddPatient" />
         <Button text="Изменить" onAction="#handleEditPatient" />
         <Button text="Удалить" onAction="#handleDeletePatient" />
+        <Button text="Экспорт в CSV" onAction="#handleExportPatients" styleClass="secondary"/>
     </HBox>
 </VBox>

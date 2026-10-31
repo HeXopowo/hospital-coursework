@@ -1,5 +1,7 @@
 package hospital;
 import hospital.daomodel.User;
+import hospital.util.Constants;
+
 import java.sql.*;
 
 public class UserDao {
@@ -22,7 +24,7 @@ public class UserDao {
                     user.setUsername(rs.getString("Username"));
                     user.setPassword(rs.getString("Password"));
                     user.setRole(rs.getString("Role"));
-                    user.setRoleId(rs.getInt("RoleID")); // Теперь содержит соответствующий ID
+                    user.setRoleId(rs.getInt("RoleID"));
                     return user;
                 }
             }
@@ -63,13 +65,13 @@ public class UserDao {
         int roleId = user.getRoleId();
 
         switch (user.getRole()) {
-            case "DOCTOR":
+            case Constants.ROLE_DOCTOR:
                 sql = "SELECT FirstName, LastName FROM Doctors WHERE DoctorID = ?";
                 break;
-            case "PATIENT":
+            case Constants.ROLE_PATIENT:
                 sql = "SELECT FirstName, LastName FROM Patients WHERE PatientID = ?";
                 break;
-            case "ADMIN":
+            case Constants.ROLE_ADMIN:
                 sql = "SELECT FirstName, LastName FROM Admins WHERE AdminID = ?";
                 break;
             default:

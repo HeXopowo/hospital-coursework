@@ -1,5 +1,7 @@
 package hospital;
 import hospital.daomodel.Prescription;
+import hospital.util.Constants;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,7 @@ public class PrescriptionDao {
         List<Prescription> prescriptions = new ArrayList<>();
         String sql;
 
-        if ("PATIENT".equalsIgnoreCase(role)) {
+        if (Constants.ROLE_PATIENT.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     p.PrescriptionID, 
@@ -22,7 +24,7 @@ public class PrescriptionDao {
                 JOIN Doctors d ON p.DoctorID = d.DoctorID
                 WHERE p.PatientID = ?
             """;
-        } else if ("DOCTOR".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     p.PrescriptionID, 
@@ -35,7 +37,7 @@ public class PrescriptionDao {
                 JOIN Doctors d ON p.DoctorID = d.DoctorID
                 WHERE p.DoctorID = ?
             """;
-        } else if ("ADMIN".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
             sql = """
                 SELECT 
                     p.PrescriptionID, 
@@ -54,7 +56,7 @@ public class PrescriptionDao {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (!"ADMIN".equalsIgnoreCase(role)) {
+            if (!Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
                 stmt.setInt(1, roleId);
             }
 
@@ -157,7 +159,7 @@ public class PrescriptionDao {
         List<Prescription> prescriptions = new ArrayList<>();
         String sql;
 
-        if ("PATIENT".equalsIgnoreCase(role)) {
+        if (Constants.ROLE_PATIENT.equalsIgnoreCase(role)) {
             sql = """
             SELECT 
                 p.PrescriptionID, 
@@ -173,7 +175,7 @@ public class PrescriptionDao {
                OR LOWER(d.LastName) LIKE LOWER(?)
                OR LOWER(d.FirstName || ' ' || d.LastName) LIKE LOWER(?))
         """;
-        } else if ("DOCTOR".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_DOCTOR.equalsIgnoreCase(role)) {
             sql = """
             SELECT 
                 p.PrescriptionID, 
@@ -189,7 +191,7 @@ public class PrescriptionDao {
                OR LOWER(pt.LastName) LIKE LOWER(?)
                OR LOWER(pt.FirstName || ' ' || pt.LastName) LIKE LOWER(?))
         """;
-        } else if ("ADMIN".equalsIgnoreCase(role)) {
+        } else if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
             sql = """
             SELECT 
                 p.PrescriptionID, 
@@ -216,7 +218,7 @@ public class PrescriptionDao {
 
             String likeTerm = "%" + searchTerm + "%";
 
-            if ("ADMIN".equalsIgnoreCase(role)) {
+            if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
                 for (int i = 1; i <= 6; i++) {
                     stmt.setString(i, likeTerm);
                 }
